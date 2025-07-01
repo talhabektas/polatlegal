@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İletişim - Polatlar Hukuk Bürosu</title>
+    <meta name="description" content="Bizimle iletişime geçin. Adres, telefon, e-posta bilgileri ve iletişim formu.">
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/main.js" defer></script>
+</head>
+
+<body>
+
+    <header class="main-header">
+        <div class="container">
+            <a href="index.html" class="logo">Polatlar Hukuk</a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Anasayfa</a></li>
+                    <li><a href="hakkimizda.html">Hakkımızda</a></li>
+                    <li><a href="calisma-alanlarimiz.html">Çalışma Alanlarımız</a></li>
+                    <li><a href="ekibimiz.html">Ekibimiz</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="iletisim.html" class="active">İletişim</a></li>
+                </ul>
+            </nav>
+            <button class="mobile-nav-toggle">MENU</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <h1>İletişim</h1>
+            </div>
+        </div>
+        <div class="container" style="padding-top: 4rem; padding-bottom: 4rem;">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h2>Bize Ulaşın</h2>
+                    <p>Hukuki soru ve sorunlarınız için aşağıdaki bilgilerden bize ulaşabilir veya yan taraftaki formu
+                        doldurarak mesaj gönderebilirsiniz.</p>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> Örnek Mah. Avukatlar Cad. No:123, Kat:4, D:5, İstanbul
+                        </li>
+                        <li><i class="fas fa-phone"></i> +90 212 123 45 67</li>
+                        <li><i class="fas fa-envelope"></i> bilgi@polatlarhukuk.com</li>
+                    </ul>
+                    <div class="map-container">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3010.594038442084!2d28.9754980153839!3d41.01358997929977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cab9e8f4a13f6b%3A0x8f7f2b9b2b5a1b0d!2sAyasofya!5e0!3m2!1str!2str!4v1678886565403!5m2!1str!2str"
+                            width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <h2>Mesaj Gönderin</h2>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="name">Adınız Soyadınız</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-posta Adresiniz</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">Konu</label>
+                            <input type="text" id="subject" name="subject" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Mesajınız</label>
+                            <textarea id="message" name="message" rows="6" required></textarea>
+                        </div>
+                        <button type="submit" class="btn">Gönder</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2025 Polatlar Hukuk Bürosu. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>

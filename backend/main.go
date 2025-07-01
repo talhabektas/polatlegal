@@ -1,0 +1,479 @@
+package main
+
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/gorilla/mux"
+)
+
+// --- Veritabanı Modelleri ---
+
+type Service struct {
+	ID          int    `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	IconClass   string `json:"icon_class"`
+}
+
+type TeamMember struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Title    string `json:"title"`
+	Bio      string `json:"bio"`
+	ImageURL string `json:"image_url"`
+}
+
+type Post struct {
+	ID          int            `json:"id"`
+	Title       string         `json:"title"`
+	Content     string         `json:"content"`
+	Author      sql.NullString `json:"author,omitempty"`
+	CreatedAt   string         `json:"created_at"`
+	ServiceID   sql.NullInt64  `json:"service_id,omitempty"`
+	ServiceName sql.NullString `json:"service_name,omitempty"`
+}
+
+type Claims struct {
+	Username string `json:"username"`
+	jwt.RegisteredClaims
+}
+
+// PostRequest, yeni/güncel post isteklerini ayrıştırmak için kullanılır
+// çünkü sql.NullInt64 basit bir sayıdan/nulldan çözülemez.
+type PostRequest struct {
+	Title     string `json:"title"`
+	Content   string `json:"content"`
+	Author    string `json:"author"`
+	ServiceID *int64 `json:"service_id"`
+}
+
+// --- Veritabanı Bağlantısı ---
+var db *sql.DB
+
+func initDB() {
+	var err error
+	// DSN (Data Source Name) formatı: username:password@tcp(127.0.0.1:3306)/database_name
+	dsn := "root:61611616@tcp(127.0.0.1:3306)/polats?parseTime=true"
+	db, err = sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("Veritabanı bağlantısı açılamadı: %v", err)
+	}
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("Veritabanına bağlanılamadı: %v", err)
+	}
+
+	log.Println("Veritabanı bağlantısı başarılı!")
+}
+
+// --- JWT Ayarları ---
+var jwtKey = []byte("my_secret_key") // Üretimde bunu güvenli bir yerden alın!
+
+// --- API Handler'ları ---
+
+func getServices(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, title, description, icon_class FROM services")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	services := []Service{}
+	for rows.Next() {
+		var s Service
+		if err := rows.Scan(&s.ID, &s.Title, &s.Description, &s.IconClass); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		services = append(services, s)
+	}
+
+	json.NewEncoder(w).Encode(services)
+}
+
+func getTeamMembers(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, name, title, bio, image_url FROM team_members")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	team := []TeamMember{}
+	for rows.Next() {
+		var t TeamMember
+		if err := rows.Scan(&t.ID, &t.Name, &t.Title, &t.Bio, &t.ImageURL); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		team = append(team, t)
+	}
+
+	json.NewEncoder(w).Encode(team)
+}
+
+func getPosts(w http.ResponseWriter, r *http.Request) {
+	query := `
+		SELECT 
+			p.id, p.title, p.content, p.created_at, p.service_id, s.title as service_name
+		FROM 
+			posts p
+		LEFT JOIN 
+			services s ON p.service_id = s.id
+		ORDER BY 
+			p.created_at DESC`
+
+	rows, err := db.Query(query)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	posts := []Post{}
+	for rows.Next() {
+		var p Post
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.CreatedAt, &p.ServiceID, &p.ServiceName); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		posts = append(posts, p)
+	}
+
+	json.NewEncoder(w).Encode(posts)
+}
+
+// --- API Handler'ları (Admin) ---
+
+type LoginDetails struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	var details LoginDetails
+	if err := json.NewDecoder(r.Body).Decode(&details); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Giriş denemesi alındı: Kullanıcı Adı='%s'", details.Username)
+
+	var storedPassword string
+	err := db.QueryRow("SELECT password_hash FROM admins WHERE TRIM(username) = ? AND username IS NOT NULL LIMIT 1", details.Username).Scan(&storedPassword)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Println("Hata: Kullanıcı adı veritabanında bulunamadı.")
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		log.Printf("Veritabanı sorgu hatası: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// HATA AYIKLAMA: Gelen ve veritabanındaki şifreleri terminale yazdır.
+	log.Printf("Gelen Şifre: '%s'", details.Password)
+	log.Printf("DB'deki Şifre: '%s'", storedPassword)
+
+	// Düz metin şifre karşılaştırması (SADECE GELİŞTİRME İÇİN!)
+	if details.Password != storedPassword {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		Username: details.Username,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
+}
+
+func authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Token'ı Authorization header'ından al: "Bearer TOKEN"
+		tokenStr := r.Header.Get("Authorization")
+		if len(tokenStr) < 7 || tokenStr[:7] != "Bearer " {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		tokenStr = tokenStr[7:]
+
+		claims := &Claims{}
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+
+		if err != nil || !token.Valid {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Boş CRUD Handler'ları (Daha sonra doldurulacak)
+func placeholderHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, "Endpoint not implemented yet.")
+}
+
+// Yeni admin handler'ları ekle
+func adminGetServices(w http.ResponseWriter, r *http.Request) {
+	getServices(w, r) // Public handler'ı yeniden kullanabiliriz
+}
+func adminGetTeam(w http.ResponseWriter, r *http.Request) {
+	getTeamMembers(w, r) // Public handler'ı yeniden kullanabiliriz
+}
+func adminGetPosts(w http.ResponseWriter, r *http.Request) {
+	getPosts(w, r) // Public handler'ı yeniden kullanabiliriz
+}
+
+// --- GERÇEK CRUD HANDLER'LARI ---
+
+// Hizmet Ekle (POST /api/admin/services)
+func createServiceHandler(w http.ResponseWriter, r *http.Request) {
+	var s Service
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	query := "INSERT INTO services (title, description, icon_class) VALUES (?, ?, ?)"
+	res, err := db.Exec(query, s.Title, s.Description, s.IconClass)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	id, _ := res.LastInsertId()
+	s.ID = int(id)
+	json.NewEncoder(w).Encode(s)
+}
+
+// Hizmet Güncelle (PUT /api/admin/services/{id})
+func updateServiceHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var s Service
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	query := "UPDATE services SET title=?, description=?, icon_class=? WHERE id=?"
+	_, err := db.Exec(query, s.Title, s.Description, s.IconClass, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// Hizmet Sil (DELETE /api/admin/services/{id})
+func deleteServiceHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	_, err := db.Exec("DELETE FROM services WHERE id=?", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// Ekip Üyesi Ekle (POST /api/admin/team)
+func createTeamMemberHandler(w http.ResponseWriter, r *http.Request) {
+	var t TeamMember
+	json.NewDecoder(r.Body).Decode(&t)
+	query := "INSERT INTO team_members (name, title, bio, image_url) VALUES (?, ?, ?, ?)"
+	res, _ := db.Exec(query, t.Name, t.Title, t.Bio, t.ImageURL)
+	id, _ := res.LastInsertId()
+	t.ID = int(id)
+	json.NewEncoder(w).Encode(t)
+}
+
+// Ekip Üyesi Güncelle (PUT /api/admin/team/{id})
+func updateTeamMemberHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var t TeamMember
+	json.NewDecoder(r.Body).Decode(&t)
+	query := "UPDATE team_members SET name=?, title=?, bio=?, image_url=? WHERE id=?"
+	db.Exec(query, t.Name, t.Title, t.Bio, t.ImageURL, id)
+	w.WriteHeader(http.StatusOK)
+}
+
+// Ekip Üyesi Sil (DELETE /api/admin/team/{id})
+func deleteTeamMemberHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	db.Exec("DELETE FROM team_members WHERE id=?", id)
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// Blog Yazısı Ekle (POST /api/admin/posts)
+func createPostHandler(w http.ResponseWriter, r *http.Request) {
+	var req PostRequest // Yeni request struct'ını kullan
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var serviceID sql.NullInt64
+	if req.ServiceID != nil {
+		serviceID.Valid = true
+		serviceID.Int64 = *req.ServiceID
+	}
+
+	query := "INSERT INTO posts (title, content, service_id) VALUES (?, ?, ?)"
+	res, err := db.Exec(query, req.Title, req.Content, serviceID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	id, _ := res.LastInsertId()
+	p := Post{
+		ID:        int(id),
+		Title:     req.Title,
+		Content:   req.Content,
+		ServiceID: serviceID,
+	}
+	json.NewEncoder(w).Encode(p)
+}
+
+// Blog Yazısı Güncelle (PUT /api/admin/posts/{id})
+func updatePostHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var req PostRequest // Yeni request struct'ını kullan
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var serviceID sql.NullInt64
+	if req.ServiceID != nil {
+		serviceID.Valid = true
+		serviceID.Int64 = *req.ServiceID
+	}
+
+	query := "UPDATE posts SET title = ?, content = ?, service_id = ? WHERE id = ?"
+	_, err := db.Exec(query, req.Title, req.Content, serviceID, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	pID, _ := strconv.Atoi(id)
+	p := Post{
+		ID:        pID,
+		Title:     req.Title,
+		Content:   req.Content,
+		ServiceID: serviceID,
+	}
+	json.NewEncoder(w).Encode(p)
+}
+
+// Blog Yazısı Sil (DELETE /api/admin/posts/{id})
+func deletePostHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	db.Exec("DELETE FROM posts WHERE id=?", id)
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func main() {
+	// Veritabanını başlat
+	initDB()
+	defer db.Close()
+
+	// Router'ı oluştur
+	r := mux.NewRouter()
+
+	// API Rotaları
+	apiPublic := r.PathPrefix("/api").Subrouter()
+	apiPublic.HandleFunc("/services", getServices).Methods("GET")
+	apiPublic.HandleFunc("/team", getTeamMembers).Methods("GET")
+	apiPublic.HandleFunc("/posts", getPosts).Methods("GET")
+
+	// Admin API Rotaları
+	// 1. Korumasız Rota: Login
+	r.HandleFunc("/api/admin/login", loginHandler).Methods("POST")
+
+	// 2. Korumalı Rota Grubu
+	apiAdminProtected := r.PathPrefix("/api/admin").Subrouter()
+	apiAdminProtected.Use(authMiddleware) // Middleware sadece bu gruba uygulanacak
+
+	// Korumalı Admin "GET" Rotaları
+	apiAdminProtected.HandleFunc("/services", adminGetServices).Methods("GET")
+	apiAdminProtected.HandleFunc("/team", adminGetTeam).Methods("GET")
+	apiAdminProtected.HandleFunc("/posts", adminGetPosts).Methods("GET")
+
+	// Korumalı Admin CRUD Rotaları
+	apiAdminProtected.HandleFunc("/services", createServiceHandler).Methods("POST")
+	apiAdminProtected.HandleFunc("/services/{id}", updateServiceHandler).Methods("PUT")
+	apiAdminProtected.HandleFunc("/services/{id}", deleteServiceHandler).Methods("DELETE")
+
+	apiAdminProtected.HandleFunc("/team", createTeamMemberHandler).Methods("POST")
+	apiAdminProtected.HandleFunc("/team/{id}", updateTeamMemberHandler).Methods("PUT")
+	apiAdminProtected.HandleFunc("/team/{id}", deleteTeamMemberHandler).Methods("DELETE")
+
+	apiAdminProtected.HandleFunc("/posts", createPostHandler).Methods("POST")
+	apiAdminProtected.HandleFunc("/posts/{id}", updatePostHandler).Methods("PUT")
+	apiAdminProtected.HandleFunc("/posts/{id}", deletePostHandler).Methods("DELETE")
+
+	// Admin panelini sun
+	// /admin/ yolundan sonraki kısmı alıp ../admin dizininde arar.
+	adminFileServer := http.FileServer(http.Dir("../admin"))
+	r.PathPrefix("/admin/").Handler(http.StripPrefix("/admin/", adminFileServer))
+
+	// Frontend dosyalarını sun (en sonda olmalı ki diğer rotaları ezmesin)
+	frontendFileServer := http.FileServer(http.Dir("../frontend"))
+	r.PathPrefix("/").Handler(frontendFileServer)
+
+	// CORS Middleware
+	corsHandler := func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			h.ServeHTTP(w, r)
+		})
+	}
+
+	log.Println("Sunucu http://localhost:8061 adresinde başlatılıyor...")
+	err := http.ListenAndServe(":8061", corsHandler(r))
+	if err != nil {
+		log.Fatalf("Sunucu başlatılamadı: %s\n", err)
+	}
+}

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetim Paneli - Polatlar Hukuk</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+    <div id="login-container" class="container active">
+        <h1>Yönetici Girişi</h1>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Kullanıcı Adı</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Şifre</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn">Giriş Yap</button>
+        </form>
+        <p id="login-error" class="error-message"></p>
+    </div>
+
+    <div id="admin-panel-container" class="container">
+        <header>
+            <h1>İçerik Yönetim Paneli</h1>
+            <button id="logout-btn" class="btn btn-danger">Çıkış Yap</button>
+        </header>
+
+        <nav class="admin-nav">
+            <button data-target="services-management" class="active">Çalışma Alanları</button>
+            <button data-target="team-management">Ekip Üyeleri</button>
+            <button data-target="posts-management">Blog Yazıları</button>
+        </nav>
+
+        <main id="management-sections">
+            <!-- Hizmetler Yönetimi -->
+            <section id="services-management" class="management-section active">
+                <h2>Çalışma Alanları Yönetimi</h2>
+                <button class="btn btn-primary">Yeni Hizmet Ekle</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Başlık</th>
+                            <th>İkon Sınıfı</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="services-table-body">
+                        <!-- Veriler JS ile eklenecek -->
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Ekip Yönetimi -->
+            <section id="team-management" class="management-section">
+                <h2>Ekip Üyeleri Yönetimi</h2>
+                <button class="btn btn-primary">Yeni Üye Ekle</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>İsim</th>
+                            <th>Unvan</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="team-table-body">
+                        <!-- Veriler JS ile eklenecek -->
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Blog Yönetimi -->
+            <section id="posts-management" class="management-section">
+                <h2>Blog Yazıları Yönetimi</h2>
+                <button class="btn btn-primary">Yeni Yazı Ekle</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Başlık</th>
+                            <th>Yayınlanma Tarihi</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="posts-table-body">
+                        <!-- Veriler JS ile eklenecek -->
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+
+    <!-- Hizmet Ekle/Düzenle Modal -->
+    <div id="service-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modal-title">Hizmet Ekle/Düzenle</h2>
+            <form id="service-form">
+                <input type="hidden" id="service-id">
+                <div class="form-group">
+                    <label for="service-title">Başlık</label>
+                    <input type="text" id="service-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="service-description">Açıklama</label>
+                    <textarea id="service-description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="service-icon">İkon Sınıfı (örn: fas fa-gavel)</label>
+                    <input type="text" id="service-icon" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ekip Ekle/Düzenle Modal -->
+    <div id="team-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Ekip Üyesi Ekle/Düzenle</h2>
+            <form id="team-form">
+                <input type="hidden" id="team-id">
+                <div class="form-group">
+                    <label for="team-name">İsim</label>
+                    <input type="text" id="team-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="team-title">Unvan</label>
+                    <input type="text" id="team-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="team-bio">Biyografi</label>
+                    <textarea id="team-bio" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="team-image">Resim URL</label>
+                    <input type="text" id="team-image" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Blog Ekle/Düzenle Modal -->
+    <div id="post-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Blog Yazısı Ekle/Düzenle</h2>
+            <form id="post-form">
+                <input type="hidden" id="post-id">
+                <div class="form-group">
+                    <label for="post-title">Başlık</label>
+                    <input type="text" id="post-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="post-content">İçerik</label>
+                    <textarea id="post-content" rows="8" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="post-service">İlişkili Çalışma Alanı</label>
+                    <select id="post-service">
+                        <option value="">-- Hizmet Seçin --</option>
+                        <!-- Seçenekler JS ile doldurulacak -->
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>
