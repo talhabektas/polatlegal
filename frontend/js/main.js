@@ -110,23 +110,73 @@ function initScrollEffects() {
         lastScrollTop = scrollTop;
     });
 
-    // Animate elements on scroll
+    // Apple-style scroll animations
     const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
+        threshold: 0.15,
+        rootMargin: '0px 0px -100px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
+        entries.forEach((entry, index) => {
             if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
+                // Staggered animation delay
+                setTimeout(() => {
+                    entry.target.classList.add('animate');
+                }, index * 150);
             }
         });
     }, observerOptions);
 
-    // Observe cards and sections
-    document.querySelectorAll('.service-card, .post-card, .team-card').forEach(card => {
+    // Initialize scroll animations when page loads
+    initializeScrollAnimations(observer);
+}
+
+function initializeScrollAnimations(observer) {
+    // Service cards - animate from bottom
+    document.querySelectorAll('.service-card').forEach((card, index) => {
+        card.classList.add('scroll-animate');
+        if (index % 2 === 0) {
+            card.style.transitionDelay = `${index * 0.1}s`;
+        }
         observer.observe(card);
+    });
+
+    // Blog cards - alternate left/right
+    document.querySelectorAll('.post-card').forEach((card, index) => {
+        if (index % 2 === 0) {
+            card.classList.add('scroll-animate-left');
+        } else {
+            card.classList.add('scroll-animate-right');
+        }
+        card.style.transitionDelay = `${index * 0.2}s`;
+        observer.observe(card);
+    });
+
+    // Team cards - scale animation
+    document.querySelectorAll('.team-card').forEach((card, index) => {
+        card.classList.add('scroll-animate-scale');
+        card.style.transitionDelay = `${index * 0.15}s`;
+        observer.observe(card);
+    });
+
+    // Section titles - from bottom
+    document.querySelectorAll('.section-title, h1, h2').forEach((title, index) => {
+        title.classList.add('scroll-animate');
+        title.style.transitionDelay = `${index * 0.1}s`;
+        observer.observe(title);
+    });
+
+    // Buttons and CTAs - scale animation
+    document.querySelectorAll('.btn, .read-more').forEach((btn, index) => {
+        btn.classList.add('scroll-animate-scale');
+        btn.style.transitionDelay = `${index * 0.05}s`;
+        observer.observe(btn);
+    });
+
+    // Grid containers - staggered children
+    document.querySelectorAll('.grid-container').forEach(container => {
+        container.classList.add('scroll-animate');
+        observer.observe(container);
     });
 }
 
