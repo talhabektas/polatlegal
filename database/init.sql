@@ -60,12 +60,12 @@ INSERT INTO team_members (name, title, bio, image_url) VALUES
 ('Av. Zeynep Kaya', 'Avukat', 'Marmara Üniversitesi Hukuk Fakültesi mezunu olan Zeynep Kaya, özellikle aile hukuku ve bilişim hukuku konularında deneyimlidir.', 'assets/team2.jpg');
 
 -- Blog Yazıları
-INSERT INTO posts (title, content, author_id, service_id) VALUES
-('Boşanma Davalarında Mal Paylaşımı Nasıl Yapılır?', 'Bu yazımızda boşanma süreçlerinde mal paylaşımının hukuki çerçevesini ve sıkça sorulan soruları ele alıyoruz...', 1, 1),
-('Kişisel Verilerin Korunması Kanunu (KVKK) ve Şirketlerin Yükümlülükleri', 'KVKK kapsamında şirketlerin alması gereken önlemler ve hukuki sorumluluklar hakkında detaylı bir rehber.', 2, 2),
-('Aile Hukukunda Arabuluculuğun Önemi', 'Aile içi anlaşmazlıkların çözümünde arabuluculuk, mahkeme süreçlerine göre daha hızlı ve daha az maliyetli bir alternatif sunmaktadır. Tarafların iletişimini koruyarak ortak bir zemin bulmalarına yardımcı olur.', 1, 1),
-('Şirket Birleşme ve Devralmalarında Dikkat Edilmesi Gerekenler', 'Birleşme ve devralma süreçleri, hukuki, finansal ve operasyonel birçok detayı içerir. Doğru bir hukuki danışmanlık, sürecin pürüzsüz ilerlemesi için kritik öneme sahiptir.', 2, 2),
-('Miras Paylaşımında Sıkça Yapılan Hatalar', 'Miras hukuku, hassas ve karmaşık bir alandır. Vasiyetnamenin doğru hazırlanmaması veya saklı payların ihlal edilmesi gibi hatalar, uzun süren davalara yol açabilir.', 1, 1);
+INSERT INTO posts (title, content, author_name, author_id, service_id) VALUES
+('Boşanma Davalarında Mal Paylaşımı Nasıl Yapılır?', 'Bu yazımızda boşanma süreçlerinde mal paylaşımının hukuki çerçevesini ve sıkça sorulan soruları ele alıyoruz...', 'Ertuğrul Polat', 1, 1),
+('Kişisel Verilerin Korunması Kanunu (KVKK) ve Şirketlerin Yükümlülükleri', 'KVKK kapsamında şirketlerin alması gereken önlemler ve hukuki sorumluluklar hakkında detaylı bir rehber.', 'Çağrı Polat', 2, 2),
+('Aile Hukukunda Arabuluculuğun Önemi', 'Aile içi anlaşmazlıkların çözümünde arabuluculuk, mahkeme süreçlerine göre daha hızlı ve daha az maliyetli bir alternatif sunmaktadır. Tarafların iletişimini koruyarak ortak bir zemin bulmalarına yardımcı olur.', 'Ertuğrul Polat', 1, 1),
+('Şirket Birleşme ve Devralmalarında Dikkat Edilmesi Gerekenler', 'Birleşme ve devralma süreçleri, hukuki, finansal ve operasyonel birçok detayı içerir. Doğru bir hukuki danışmanlık, sürecin pürüzsüz ilerlemesi için kritik öneme sahiptir.', 'Çağrı Polat', 2, 2),
+('Miras Paylaşımında Sıkça Yapılan Hatalar', 'Miras hukuku, hassas ve karmaşık bir alandır. Vasiyetnamenin doğru hazırlanmaması veya saklı payların ihlal edilmesi gibi hatalar, uzun süren davalara yol açabilir.', 'Ertuğrul Polat', 1, 1);
 
 -- Admin Kullanıcısı (Şifre: 'admin123' - gerçek uygulamada hash'lenmeli)
 INSERT INTO admins (username, password_hash) VALUES

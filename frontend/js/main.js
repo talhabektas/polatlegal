@@ -169,15 +169,34 @@ function createPostCard(post) {
         day: 'numeric'
     });
 
+    // Service tag with badge styling
+    const serviceTag = post.service_name && post.service_name.String ?
+        `<span class="service-tag">
+            <i class="fas fa-tag"></i>
+            ${post.service_name.String}
+        </span>` : '';
+
+    // Author info with user icon
+    const authorInfo = post.author && post.author.String ?
+        `<span class="author-info">
+            <i class="fas fa-user"></i>
+            ${post.author.String}
+        </span>` : '';
+
     card.innerHTML = `
         <div class="post-card-content">
+            <div class="post-tags">
+                ${serviceTag}
+            </div>
             <h3>${post.title}</h3>
             <p>${post.content.substring(0, 150)}${post.content.length > 150 ? '...' : ''}</p>
-            <span class="post-meta">
-                <i class="fas fa-calendar-alt"></i>
-                ${postDate}
-                ${post.service_name && post.service_name.String ? `<span style="margin-left: 1rem;"><i class="fas fa-tag"></i> ${post.service_name.String}</span>` : ''}
-            </span>
+            <div class="post-meta">
+                <span class="post-date">
+                    <i class="fas fa-calendar-alt"></i>
+                    ${postDate}
+                </span>
+                ${authorInfo}
+            </div>
             <a href="blog.html#post-${post.id}" class="read-more">
                 Devamını Oku
             </a>

@@ -52,7 +52,7 @@ type PostRequest struct {
 	Title     string `json:"title"`
 	Content   string `json:"content"`
 	Author    string `json:"author"`
-	ServiceID *int64 `json:"service_id"`
+	ServiceID string `json:"service_id"` // String olarak al, parse ederiz
 }
 
 // --- Veritabanı Bağlantısı ---
@@ -123,15 +123,43 @@ func getTeamMembers(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPosts(w http.ResponseWriter, r *http.Request) {
-	query := `
-		SELECT 
-			p.id, p.title, p.content, p.created_at, p.service_id, s.title as service_name
-		FROM 
-			posts p
-		LEFT JOIN 
-			services s ON p.service_id = s.id
-		ORDER BY 
-			p.created_at DESC`
+	// İlk önce author_name alanının var olup olmadığını kontrol et
+	var columnExists bool
+	checkQuery := `
+		SELECT COUNT(*) > 0 as column_exists
+		FROM INFORMATION_SCHEMA.COLUMNS 
+		WHERE TABLE_SCHEMA = 'polats' 
+		AND TABLE_NAME = 'posts' 
+		AND COLUMN_NAME = 'author_name'`
+
+	err := db.QueryRow(checkQuery).Scan(&columnExists)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var query string
+	if columnExists {
+		query = `
+			SELECT 
+				p.id, p.title, p.content, p.author_name, p.created_at, p.service_id, s.title as service_name
+			FROM 
+				posts p
+			LEFT JOIN 
+				services s ON p.service_id = s.id
+			ORDER BY 
+				p.created_at DESC`
+	} else {
+		query = `
+			SELECT 
+				p.id, p.title, p.content, NULL as author_name, p.created_at, p.service_id, s.title as service_name
+			FROM 
+				posts p
+			LEFT JOIN 
+				services s ON p.service_id = s.id
+			ORDER BY 
+				p.created_at DESC`
+	}
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -143,7 +171,7 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 	posts := []Post{}
 	for rows.Next() {
 		var p Post
-		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.CreatedAt, &p.ServiceID, &p.ServiceName); err != nil {
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.Author, &p.CreatedAt, &p.ServiceID, &p.ServiceName); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -344,13 +372,44 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var serviceID sql.NullInt64
-	if req.ServiceID != nil {
-		serviceID.Valid = true
-		serviceID.Int64 = *req.ServiceID
+	if req.ServiceID != "" {
+		if id, err := strconv.ParseInt(req.ServiceID, 10, 64); err == nil {
+			serviceID.Valid = true
+			serviceID.Int64 = id
+		}
 	}
 
-	query := "INSERT INTO posts (title, content, service_id) VALUES (?, ?, ?)"
-	res, err := db.Exec(query, req.Title, req.Content, serviceID)
+	var author sql.NullString
+	if req.Author != "" {
+		author.Valid = true
+		author.String = req.Author
+	}
+
+	// author_name alanının var olup olmadığını kontrol et
+	var columnExists bool
+	checkQuery := `
+		SELECT COUNT(*) > 0 as column_exists
+		FROM INFORMATION_SCHEMA.COLUMNS 
+		WHERE TABLE_SCHEMA = 'polats' 
+		AND TABLE_NAME = 'posts' 
+		AND COLUMN_NAME = 'author_name'`
+
+	err := db.QueryRow(checkQuery).Scan(&columnExists)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var query string
+	var res sql.Result
+	if columnExists {
+		query = "INSERT INTO posts (title, content, author_name, service_id) VALUES (?, ?, ?, ?)"
+		res, err = db.Exec(query, req.Title, req.Content, author, serviceID)
+	} else {
+		query = "INSERT INTO posts (title, content, service_id) VALUES (?, ?, ?)"
+		res, err = db.Exec(query, req.Title, req.Content, serviceID)
+	}
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -361,6 +420,7 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
 		ID:        int(id),
 		Title:     req.Title,
 		Content:   req.Content,
+		Author:    author,
 		ServiceID: serviceID,
 	}
 	json.NewEncoder(w).Encode(p)
@@ -378,13 +438,43 @@ func updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var serviceID sql.NullInt64
-	if req.ServiceID != nil {
-		serviceID.Valid = true
-		serviceID.Int64 = *req.ServiceID
+	if req.ServiceID != "" {
+		if id, err := strconv.ParseInt(req.ServiceID, 10, 64); err == nil {
+			serviceID.Valid = true
+			serviceID.Int64 = id
+		}
 	}
 
-	query := "UPDATE posts SET title = ?, content = ?, service_id = ? WHERE id = ?"
-	_, err := db.Exec(query, req.Title, req.Content, serviceID, id)
+	var author sql.NullString
+	if req.Author != "" {
+		author.Valid = true
+		author.String = req.Author
+	}
+
+	// author_name alanının var olup olmadığını kontrol et
+	var columnExists bool
+	checkQuery := `
+		SELECT COUNT(*) > 0 as column_exists
+		FROM INFORMATION_SCHEMA.COLUMNS 
+		WHERE TABLE_SCHEMA = 'polats' 
+		AND TABLE_NAME = 'posts' 
+		AND COLUMN_NAME = 'author_name'`
+
+	err := db.QueryRow(checkQuery).Scan(&columnExists)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var query string
+	if columnExists {
+		query = "UPDATE posts SET title = ?, content = ?, author_name = ?, service_id = ? WHERE id = ?"
+		_, err = db.Exec(query, req.Title, req.Content, author, serviceID, id)
+	} else {
+		query = "UPDATE posts SET title = ?, content = ?, service_id = ? WHERE id = ?"
+		_, err = db.Exec(query, req.Title, req.Content, serviceID, id)
+	}
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -395,6 +485,7 @@ func updatePostHandler(w http.ResponseWriter, r *http.Request) {
 		ID:        pID,
 		Title:     req.Title,
 		Content:   req.Content,
+		Author:    author,
 		ServiceID: serviceID,
 	}
 	json.NewEncoder(w).Encode(p)

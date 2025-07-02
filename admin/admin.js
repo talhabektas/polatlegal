@@ -322,6 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('post-id').value = item.id;
             document.getElementById('post-title').value = item.title;
             document.getElementById('post-content').value = item.content;
+            document.getElementById('post-author').value = item.author?.String || '';
             document.getElementById('post-service').value = item.service_id?.Int64 || '';
             openModal(postModal);
         }
@@ -406,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const postData = {
             title: document.getElementById('post-title').value,
             content: document.getElementById('post-content').value,
+            author: document.getElementById('post-author').value,
             service_id: document.getElementById('post-service').value || null
         };
 
