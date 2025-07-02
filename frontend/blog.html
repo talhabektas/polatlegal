@@ -12,11 +12,11 @@
         integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <link rel="stylesheet" href="css/style.css?v=2025010303">
+    <link rel="stylesheet" href="css/style.css?v=2025010306">
     <script src="js/main.js" defer></script>
 </head>
 
-<body class="page-blog" style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%) !important;">
+<body class="page-blog">
 
     <header class="main-header">
         <div class="container">
@@ -35,7 +35,7 @@
         </div>
     </header>
 
-    <main>
+    <main style="background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%) !important;">
         <section id="hero">
             <div class="container">
                 <h1>Hukuk Dünyasından Güncel Bilgiler</h1>
@@ -43,7 +43,46 @@
                 <a href="iletisim.html" class="btn">Soru Sorun</a>
             </div>
         </section>
-        <div class="container" style="padding-top: 4rem; padding-bottom: 4rem;">
+        <!-- Blog Detay Bölümü -->
+        <div id="post-detail" class="post-detail-container" style="display: none;">
+            <div class="container">
+                <button id="back-to-posts" class="btn btn-outline" style="margin-bottom: 2rem;">
+                    <i class="fas fa-arrow-left"></i> Geri Dön
+                </button>
+                <div class="post-detail-content">
+                    <div class="post-detail-header">
+                        <div class="post-meta-detail">
+                            <span class="post-date-detail">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span id="detail-post-date">2 Temmuz 2025</span>
+                            </span>
+                            <span class="post-author-detail">
+                                <i class="fas fa-user"></i>
+                                <span id="detail-post-author">Yazar</span>
+                            </span>
+                            <span class="post-service-detail">
+                                <i class="fas fa-tag"></i>
+                                <span id="detail-post-service">Kategori</span>
+                            </span>
+                        </div>
+                        <h1 id="detail-post-title">Blog Yazısı Başlığı</h1>
+                    </div>
+                    <div class="post-detail-body">
+                        <div id="detail-post-content">
+                            <!-- Detaylı içerik buraya gelecek -->
+                        </div>
+                        <div class="post-contact">
+                            <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                            <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                            <a href="iletisim.html" class="btn">İletişime Geçin</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ana Blog Listesi -->
+        <div id="posts-list" class="container" style="padding-top: 4rem; padding-bottom: 4rem;">
             <p class="page-intro">Hukuk dünyasındaki son gelişmeler, güncel makalelerimiz ve müvekkillerimiz için
                 bilgilendirici yazılar.</p>
             <div id="posts-full-container" class="posts-list-container">

@@ -181,6 +181,62 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(posts)
 }
 
+func getPost(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	// İlk önce author_name alanının var olup olmadığını kontrol et
+	var columnExists bool
+	checkQuery := `
+		SELECT COUNT(*) > 0 as column_exists
+		FROM INFORMATION_SCHEMA.COLUMNS 
+		WHERE TABLE_SCHEMA = 'polats' 
+		AND TABLE_NAME = 'posts' 
+		AND COLUMN_NAME = 'author_name'`
+
+	err := db.QueryRow(checkQuery).Scan(&columnExists)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var query string
+	if columnExists {
+		query = `
+			SELECT 
+				p.id, p.title, p.content, p.author_name, p.created_at, p.service_id, s.title as service_name
+			FROM 
+				posts p
+			LEFT JOIN 
+				services s ON p.service_id = s.id
+			WHERE 
+				p.id = ?`
+	} else {
+		query = `
+			SELECT 
+				p.id, p.title, p.content, NULL as author_name, p.created_at, p.service_id, s.title as service_name
+			FROM 
+				posts p
+			LEFT JOIN 
+				services s ON p.service_id = s.id
+			WHERE 
+				p.id = ?`
+	}
+
+	var p Post
+	err = db.QueryRow(query, id).Scan(&p.ID, &p.Title, &p.Content, &p.Author, &p.CreatedAt, &p.ServiceID, &p.ServiceName)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Post not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(p)
+}
+
 // --- API Handler'ları (Admin) ---
 
 type LoginDetails struct {
@@ -551,6 +607,7 @@ func main() {
 	apiPublic := r.PathPrefix("/api").Subrouter()
 	apiPublic.HandleFunc("/services", getServices).Methods("GET")
 	apiPublic.HandleFunc("/team", getTeamMembers).Methods("GET")
+	apiPublic.HandleFunc("/posts/{id}", getPost).Methods("GET")
 	apiPublic.HandleFunc("/posts", getPosts).Methods("GET")
 
 	// Admin API Rotaları

@@ -404,9 +404,29 @@ document.addEventListener('DOMContentLoaded', () => {
     postForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('post-id').value;
+
+        // CKEditor'den içeriği al
+        let content = '';
+        if (ckEditor && ckEditor.getData) {
+            try {
+                content = ckEditor.getData();
+            } catch (error) {
+                console.error('CKEditor getData failed:', error);
+                content = document.getElementById('post-content').value;
+            }
+        } else {
+            content = document.getElementById('post-content').value;
+        }
+
+        // İçerik kontrolü
+        if (!content || content.trim() === '' || content === '<p>&nbsp;</p>' || content === '<p></p>') {
+            NotificationManager.error('Lütfen blog yazısı içeriğini doldurun.');
+            return;
+        }
+
         const postData = {
             title: document.getElementById('post-title').value,
-            content: document.getElementById('post-content').value,
+            content: content,
             author: document.getElementById('post-author').value,
             service_id: document.getElementById('post-service').value || null
         };
@@ -491,5 +511,161 @@ document.addEventListener('DOMContentLoaded', () => {
             NotificationManager.success('Yönetim paneline hoş geldiniz! 👋');
         }
     }, 1500);
+
+    // === CKEDITOR 5 RICH TEXT EDITOR ===
+    let ckEditor = null;
+
+    function initializeCKEditor() {
+        if (ckEditor) return Promise.resolve();
+
+        return ClassicEditor
+            .create(document.querySelector('#post-content'), {
+                toolbar: {
+                    items: [
+                        'heading',
+                        '|',
+                        'bold',
+                        'italic',
+                        '|',
+                        'bulletedList',
+                        'numberedList',
+                        '|',
+                        'outdent',
+                        'indent',
+                        '|',
+                        'undo',
+                        'redo'
+                    ]
+                }
+            })
+            .then(editor => {
+                ckEditor = editor;
+
+                // Editor container'ına custom class ekle
+                editor.ui.view.element.classList.add('custom-ckeditor');
+
+                // Orijinal textarea'nın required attribute'unu kaldır
+                const textarea = document.getElementById('post-content');
+                textarea.removeAttribute('required');
+                textarea.style.display = 'none';
+
+                return editor;
+            })
+            .catch(error => {
+                console.error('CKEditor initialization failed:', error);
+                // Hata durumunda normal textarea'yı göster
+                const textarea = document.getElementById('post-content');
+                textarea.style.display = 'block';
+                textarea.setAttribute('required', 'required');
+            });
+    }
+
+    // Modal açılırken CKEditor'ü initialize et
+    const originalOpenModal = openModal;
+    openModal = function (modal) {
+        originalOpenModal(modal);
+
+        if (modal === postModal) {
+            // Form'a CKEditor class'ını ekle
+            postForm.classList.add('ckeditor-active');
+
+            // CKEditor'ü modal açıldıktan sonra initialize et
+            setTimeout(() => {
+                if (typeof ClassicEditor !== 'undefined') {
+                    initializeCKEditor()
+                        .then(() => {
+                            console.log('CKEditor initialized successfully');
+                        })
+                        .catch(error => {
+                            console.error('CKEditor initialization failed:', error);
+                            // Hata durumunda normal textarea'yı göster ve class'ı kaldır
+                            const textarea = document.getElementById('post-content');
+                            textarea.style.display = 'block';
+                            textarea.setAttribute('required', 'required');
+                            postForm.classList.remove('ckeditor-active');
+                        });
+                } else {
+                    console.error('ClassicEditor not loaded');
+                    // CKEditor yüklenmemişse normal textarea'yı göster
+                    const textarea = document.getElementById('post-content');
+                    textarea.style.display = 'block';
+                    textarea.setAttribute('required', 'required');
+                    postForm.classList.remove('ckeditor-active');
+                }
+            }, 200);
+        }
+    };
+
+    // Modal kapanırken CKEditor'ü temizle
+    const originalCloseModal = closeModal;
+    closeModal = function (modal) {
+        if (modal === postModal) {
+            if (ckEditor && ckEditor.destroy) {
+                // CKEditor'ü destroy et
+                ckEditor.destroy()
+                    .then(() => {
+                        ckEditor = null;
+                        console.log('CKEditor destroyed successfully');
+                    })
+                    .catch(error => {
+                        console.error('CKEditor destroy failed:', error);
+                        ckEditor = null;
+                    })
+                    .finally(() => {
+                        // Her durumda class'ı kaldır ve textarea'yı eski haline getir
+                        postForm.classList.remove('ckeditor-active');
+                        const textarea = document.getElementById('post-content');
+                        textarea.style.display = 'block';
+                        textarea.setAttribute('required', 'required');
+                    });
+            } else {
+                // CKEditor yoksa sadece class'ı kaldır ve textarea'yı normal haline getir
+                postForm.classList.remove('ckeditor-active');
+                const textarea = document.getElementById('post-content');
+                textarea.style.display = 'block';
+                textarea.setAttribute('required', 'required');
+            }
+        }
+
+        originalCloseModal(modal);
+    };
+
+    // Edit fonksiyonunu güncelle - CKEditor'a content'i set et
+    const originalHandleEdit = handleEdit;
+    handleEdit = function (item, sectionName) {
+        if (sectionName === 'posts') {
+            document.querySelector('#post-modal h2').textContent = 'Blog Yazısını Düzenle';
+            document.getElementById('post-id').value = item.id;
+            document.getElementById('post-title').value = item.title;
+            document.getElementById('post-author').value = item.author?.String || '';
+            document.getElementById('post-service').value = item.service_id?.Int64 || '';
+
+            openModal(postModal);
+
+            // CKEditor yüklendikten sonra content'i set et
+            setTimeout(() => {
+                if (ckEditor && ckEditor.setData) {
+                    try {
+                        ckEditor.setData(item.content || '');
+                    } catch (error) {
+                        console.error('CKEditor setData failed:', error);
+                        // Fallback olarak normal textarea'yı kullan
+                        const textarea = document.getElementById('post-content');
+                        textarea.style.display = 'block';
+                        textarea.setAttribute('required', 'required');
+                        textarea.value = item.content || '';
+                    }
+                } else {
+                    // CKEditor hazır değilse normal textarea'yı kullan
+                    const textarea = document.getElementById('post-content');
+                    textarea.style.display = 'block';
+                    textarea.setAttribute('required', 'required');
+                    textarea.value = item.content || '';
+                }
+            }, 500);
+        } else {
+            originalHandleEdit(item, sectionName);
+        }
+    };
 });
 

@@ -530,3 +530,129 @@ td button {
 .notification.warning {
     background: linear-gradient(135deg, var(--warning-color), #d97706);
 }
+
+/* === CKEDITOR 5 RICH TEXT EDITOR === */
+.custom-ckeditor {
+    border-radius: var(--border-radius-sm) !important;
+    box-shadow: var(--shadow-sm) !important;
+    font-family: inherit !important;
+}
+
+.ck-editor {
+    border: 2px solid var(--border-color) !important;
+    border-radius: var(--border-radius-sm) !important;
+}
+
+.ck-editor:focus-within {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+.ck-editor__main {
+    background: var(--surface-color) !important;
+    min-height: 300px;
+}
+
+.ck-content {
+    background: var(--surface-color) !important;
+    font-family: inherit !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    padding: 16px !important;
+    min-height: 300px !important;
+}
+
+.ck-toolbar {
+    background: var(--background-secondary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0 !important;
+}
+
+.ck-button {
+    color: var(--text-primary) !important;
+    border-radius: var(--border-radius-sm) !important;
+}
+
+.ck-button:hover {
+    background: var(--surface-color) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.ck-button.ck-on {
+    background: var(--primary-color) !important;
+    color: var(--text-light) !important;
+}
+
+.ck-dropdown__panel {
+    background: var(--surface-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius-sm) !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.ck-list__item {
+    color: var(--text-primary) !important;
+}
+
+.ck-list__item:hover {
+    background: var(--background-secondary) !important;
+}
+
+/* CKEditor modal uyumluluğu */
+.modal .ck-dialog-overlay {
+    z-index: 10001 !important;
+}
+
+.modal .ck-dialog {
+    z-index: 10002 !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-xl) !important;
+}
+
+/* Post content textarea görünürlük kontrolü */
+#post-content {
+    width: 100%;
+    min-height: 300px;
+    resize: vertical;
+}
+
+/* CKEditor aktifken textarea gizli olsun */
+.ckeditor-active #post-content {
+    display: none !important;
+}
+
+/* CKEditor content styling */
+.ck-content h1,
+.ck-content h2,
+.ck-content h3 {
+    color: var(--text-primary) !important;
+    font-weight: bold !important;
+}
+
+.ck-content p {
+    margin-bottom: 1em !important;
+}
+
+.ck-content blockquote {
+    border-left: 4px solid var(--primary-color) !important;
+    padding-left: 16px !important;
+    margin: 16px 0 !important;
+    font-style: italic !important;
+    color: var(--text-secondary) !important;
+}
+
+.ck-content table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+}
+
+.ck-content table td,
+.ck-content table th {
+    border: 1px solid var(--border-color) !important;
+    padding: 8px !important;
+}
+
+.ck-content table th {
+    background: var(--background-secondary) !important;
+    font-weight: bold !important;
+}

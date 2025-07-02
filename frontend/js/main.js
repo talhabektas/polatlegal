@@ -331,8 +331,10 @@ async function loadAllServices() {
             card.style.animationDelay = `${index * 0.1}s`;
             container.appendChild(card);
         });
+        return true; // Promise çözümü için
     } else if (container) {
         container.innerHTML = '<p style="text-align: center; color: #ef4444;">Hizmetler yüklenemedi.</p>';
+        return false;
     }
 }
 
@@ -365,8 +367,10 @@ async function loadAllPosts() {
             card.style.animationDelay = `${index * 0.1}s`;
             container.appendChild(card);
         });
+        return true; // Promise çözümü için
     } else if (container) {
         container.innerHTML = '<p style="text-align: center; color: #ef4444;">Blog yazıları yüklenemedi.</p>';
+        return false;
     }
 }
 
@@ -419,6 +423,9 @@ function initMobileNavigation() {
 
 // === PAGE INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize toast manager
+    const toast = new ToastManager();
+
     // Initialize UI enhancements
     initScrollEffects();
     initMobileNavigation();
@@ -430,7 +437,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (document.querySelector('#services-full-container')) {
-        loadAllServices();
+        loadAllServices().then(() => {
+            // Servis kartları yüklendikten sonra linkleri güncelle
+            updateServiceCardLinks();
+
+            // Sayfa yüklendiğinde hash kontrolü yap
+            setTimeout(() => {
+                handleHashChange();
+            }, 100);
+        });
+        // Servis detay sistemini başlat
+        initServiceDetailSystem();
     }
 
     if (document.querySelector('#team-container')) {
@@ -438,7 +455,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (document.querySelector('#posts-full-container')) {
-        loadAllPosts();
+        loadAllPosts().then(() => {
+            // Post kartları yüklendikten sonra linkleri güncelle
+            updatePostCardLinks();
+
+            // Sayfa yüklendiğinde hash kontrolü yap
+            setTimeout(() => {
+                handleBlogHashChange();
+            }, 100);
+        });
+        // Blog detay sistemini başlat
+        initBlogDetailSystem();
     }
 
     // Contact form
@@ -466,3 +493,436 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.show('Hoş Geldiniz', 'Polatlar Hukuk Bürosu\'na hoş geldiniz!', 'info', 4000);
     }, 1000);
 });
+
+// === SERVİS DETAY SİSTEMİ ===
+const serviceDetails = {
+    1: {
+        title: "Ceza Hukuku",
+        icon: "fas fa-gavel",
+        description: "Ceza davalarında soruşturma ve kovuşturma aşamalarında hukuki destek sağlıyoruz.",
+        content: `
+            <h2>Ceza Hukuku Hizmetlerimiz</h2>
+            <p>Ceza hukuku alanında geniş deneyime sahip avukatlarımız, müvekkillerimizin haklarını korumak için her türlü ceza davasında hizmet vermektedir.</p>
+            
+            <h3>Hizmet Verdiğimiz Alanlar</h3>
+            <ul>
+                <li>Kasten yaralama ve müessir fiil davaları</li>
+                <li>Hırsızlık, dolandırıcılık ve güveni kötüye kullanma</li>
+                <li>Tehdit, şantaj ve hakaret davaları</li>
+                <li>Uyuşturucu madde suçları</li>
+                <li>Cinsel suçlar</li>
+                <li>Mala zarar verme suçları</li>
+                <li>Trafik suçları ve trafik kazaları</li>
+                <li>Kamu görevlilerine karşı işlenen suçlar</li>
+            </ul>
+            
+            <h3>Sürecimiz</h3>
+            <ul>
+                <li>Dosya inceleme ve hukuki analiz</li>
+                <li>Savunma stratejisi belirleme</li>
+                <li>Soruşturma aşamasında temsil</li>
+                <li>Mahkeme aşamasında savunma</li>
+                <li>Temyiz ve istinaf süreçleri</li>
+            </ul>
+        `
+    },
+    2: {
+        title: "Aile Hukuku",
+        icon: "fas fa-users",
+        description: "Anlaşmalı ve çekişmeli boşanma, velayet, nafaka ve mal paylaşımı davalarına bakıyoruz.",
+        content: `
+            <h2>Aile Hukuku Hizmetlerimiz</h2>
+            <p>Aile hukuku konularında hassas yaklaşımla, müvekkillerimizin ve çocukların menfaatlerini gözeterek hizmet sunuyoruz.</p>
+            
+            <h3>Hizmet Verdiğimiz Alanlar</h3>
+            <ul>
+                <li>Anlaşmalı boşanma davaları</li>
+                <li>Çekişmeli boşanma davaları</li>
+                <li>Velayet ve kişisel ilişki kurma davaları</li>
+                <li>Nafaka davaları (yoksulluk, tedbir, çocuk)</li>
+                <li>Mal rejimi ve tasfiye davaları</li>
+                <li>Nişanlanma ve evlilik hukuku</li>
+                <li>Evlat edinme süreçleri</li>
+                <li>Aile içi şiddet ve koruma kararları</li>
+            </ul>
+            
+            <h3>Yaklaşımımız</h3>
+            <ul>
+                <li>Öncelikle anlaşma yollarını arama</li>
+                <li>Çocukların üstün menfaatini gözetme</li>
+                <li>Gizlilik ve mahremiyet ilkesi</li>
+                <li>Hızlı ve etkili çözüm arayışı</li>
+                <li>Psikolojik destek koordinasyonu</li>
+            </ul>
+        `
+    },
+    3: {
+        title: "Bilişim Hukuku",
+        icon: "fas fa-laptop-code",
+        description: "Siber zorbalık, e-ticaret anlaşmazlıkları ve kişisel verilerin korunması konularında hizmet veriyoruz.",
+        content: `
+            <h2>Bilişim Hukuku Hizmetlerimiz</h2>
+            <p>Dijital çağın gereksinimlerine uygun olarak, teknoloji ve hukuk kesişiminde kapsamlı hizmetler sunuyoruz.</p>
+            
+            <h3>Hizmet Verdiğimiz Alanlar</h3>
+            <ul>
+                <li>Kişisel Verilerin Korunması Kanunu (KVKK) uyumu</li>
+                <li>E-ticaret ve dijital platform hukuku</li>
+                <li>Siber suçlar ve siber güvenlik</li>
+                <li>Sosyal medya hukuku</li>
+                <li>Telif hakkı ve fikri mülkiyet</li>
+                <li>Bilişim sistemlerine yönelik suçlar</li>
+                <li>E-imza ve elektronik belge hukuku</li>
+                <li>Dijital pazarlama ve reklam hukuku</li>
+            </ul>
+            
+            <h3>Sunduğumuz Hizmetler</h3>
+            <ul>
+                <li>KVKK uyum danışmanlığı</li>
+                <li>Gizlilik politikaları hazırlama</li>
+                <li>E-ticaret sözleşmeleri</li>
+                <li>Siber saldırı sonrası hukuki destek</li>
+                <li>Telif hakkı ihlali davaları</li>
+            </ul>
+        `
+    },
+    4: {
+        title: "Ticaret Hukuku",
+        icon: "fas fa-handshake",
+        description: "Şirket kuruluşu, sözleşmeler ve ticari anlaşmazlıklar konularında danışmanlık hizmeti sunuyoruz.",
+        content: `
+            <h2>Ticaret Hukuku Hizmetlerimiz</h2>
+            <p>İş dünyasının dinamik yapısına uygun olarak, ticari faaliyetlerin her aşamasında hukuki destek sağlıyoruz.</p>
+            
+            <h3>Hizmet Verdiğimiz Alanlar</h3>
+            <ul>
+                <li>Şirket kuruluşu ve yapısal değişiklikler</li>
+                <li>Ticari sözleşmeler ve anlaşmalar</li>
+                <li>Ticari dava ve icra takipleri</li>
+                <li>Rekabet hukuku danışmanlığı</li>
+                <li>Franchise ve distribütörlük anlaşmaları</li>
+                <li>Ortaklık anlaşmazlıkları</li>
+                <li>Ticari markaların korunması</li>
+                <li>İcra ve iflas hukuku</li>
+            </ul>
+            
+            <h3>Süreç Yönetimi</h3>
+            <ul>
+                <li>Hukuki risklerin analizi</li>
+                <li>Sözleşme taslağı hazırlama</li>
+                <li>Müzakere sürecinde destek</li>
+                <li>Uyuşmazlık çözümü</li>
+                <li>Mahkeme sürecinde temsil</li>
+            </ul>
+        `
+    },
+    5: {
+        title: "Gayrimenkul Hukuku",
+        icon: "fas fa-building",
+        description: "Tapu işlemleri, kira sözleşmeleri ve gayrimenkul alım-satım davalarıyla ilgleniyoruz.",
+        content: `
+            <h2>Gayrimenkul Hukuku Hizmetlerimiz</h2>
+            <p>Gayrimenkul sektöründeki deneyimimizle, alım-satımdan kira ilişkilerine kadar her konuda hizmet veriyoruz.</p>
+            
+            <h3>Hizmet Verdiğimiz Alanlar</h3>
+            <ul>
+                <li>Gayrimenkul alım-satım işlemleri</li>
+                <li>Kira sözleşmeleri ve tahliye davaları</li>
+                <li>Tapu tescil ve iptal davaları</li>
+                <li>İmar hukuku danışmanlığı</li>
+                <li>Arsa payı değişikliği davaları</li>
+                <li>Kamulaştırma davaları</li>
+                <li>Kat mülkiyeti ve kat irtifakı</li>
+                <li>İnşaat sözleşmeleri</li>
+            </ul>
+            
+            <h3>Hukuki Süreçler</h3>
+            <ul>
+                <li>Tapu araştırması ve due diligence</li>
+                <li>Sözleşme hazırlama ve inceleme</li>
+                <li>İcra takibi ve dava süreçleri</li>
+                <li>Belediye ve idari işlemler</li>
+                <li>Emlak vergisi ve harç hesaplamaları</li>
+            </ul>
+        `
+    },
+    6: {
+        title: "İcra ve İflas Hukuku",
+        icon: "fas fa-dollar-sign",
+        description: "Alacak tahsili, haciz işlemleri ve iflas süreçlerinde müvekkillerinizin yanındayız.",
+        content: `
+            <h2>İcra ve İflas Hukuku Hizmetlerimiz</h2>
+            <p>Alacaklarınızın tahsili ve borç sorunlarınızın çözümü için etkin hukuki stratejiler geliştiriyoruz.</p>
+            
+            <h3>Hizmet Verdiğimiz Alanlar</h3>
+            <ul>
+                <li>İcra takibi başlatma ve takip etme</li>
+                <li>Haciz işlemleri ve satış süreçleri</li>
+                <li>İflas davası açma ve savunma</li>
+                <li>Konkordato süreçleri</li>
+                <li>İtiraz ve menfi tespit davaları</li>
+                <li>İcra inkar ve eda davaları</li>
+                <li>Ödeme emri itirazları</li>
+                <li>Hacze iştirak ve pay paylaştırma</li>
+            </ul>
+            
+            <h3>Stratejik Yaklaşım</h3>
+            <ul>
+                <li>En uygun takip türünün belirlenmesi</li>
+                <li>Hızlı ve etkili icra stratejisi</li>
+                <li>Borçlunun mal varlığının araştırılması</li>
+                <li>Alternatif çözüm yollarının değerlendirilmesi</li>
+                <li>Risk analizi ve maliyet hesaplaması</li>
+            </ul>
+        `
+    },
+    7: {
+        title: "Trabzon Hukuku",
+        icon: "fas fa-landmark",
+        description: "Yerel hukuki konular ve Trabzon özelinde hukuki danışmanlık hizmetleri.",
+        content: `
+            <h2>Trabzon Özelinde Hukuki Hizmetlerimiz</h2>
+            <p>Trabzon ve çevresindeki özel durumlar için yerel deneyimimizle hizmet sunuyoruz.</p>
+            
+            <h3>Hizmet Verdiğimiz Alanlar</h3>
+            <ul>
+                <li>Yerel imar uygulamaları</li>
+                <li>Tarım arazisi hukuku</li>
+                <li>Kıyı hukuku ve kıyı kenar çizgisi</li>
+                <li>Orman hukuku uygulamaları</li>
+                <li>Yerel yönetim hukuku</li>
+                <li>Bölgesel ticaret hukuku</li>
+                <li>Turizm hukuku</li>
+                <li>Balıkçılık ve denizcilik hukuku</li>
+            </ul>
+            
+            <h3>Bölgesel Uzmanlık</h3>
+            <ul>
+                <li>Trabzon'a özgü yasal düzenlemeler</li>
+                <li>Yerel mahkemelerle işbirliği</li>
+                <li>Bölgesel ticaret uygulamaları</li>
+                <li>Kültürel ve sosyal özellikler gözetimi</li>
+                <li>Yerel ağ ve referanslar</li>
+            </ul>
+        `
+    }
+};
+
+// Hash routing sistemi
+let serviceHashListenerAdded = false;
+
+function initServiceDetailSystem() {
+    // Hash değişikliklerini sadece bir kez dinle
+    if (!serviceHashListenerAdded) {
+        window.addEventListener('hashchange', handleHashChange);
+        window.addEventListener('load', handleHashChange);
+        serviceHashListenerAdded = true;
+    }
+
+    // Geri dön butonu
+    const backButton = document.getElementById('back-to-services');
+    if (backButton && !backButton.hasAttribute('data-listener-added')) {
+        backButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            showServicesList();
+        });
+        backButton.setAttribute('data-listener-added', 'true');
+    }
+}
+
+function handleHashChange() {
+    const hash = window.location.hash;
+
+    // Sadece servis sayfasındaysak hash değişikliklerini handle et
+    if (window.location.pathname.includes('calisma-alanlarimiz.html')) {
+        if (hash.startsWith('#service-')) {
+            const serviceId = parseInt(hash.replace('#service-', ''));
+            if (!isNaN(serviceId)) {
+                showServiceDetail(serviceId);
+            } else {
+                showServicesList();
+            }
+        } else {
+            showServicesList();
+        }
+    }
+}
+
+function showServiceDetail(serviceId) {
+    const serviceDetail = serviceDetails[serviceId];
+
+    if (!serviceDetail) {
+        ToastManager.error('Hizmet bulunamadı.');
+        showServicesList();
+        return;
+    }
+
+    // Detay bilgilerini güncelle
+    document.getElementById('detail-icon').className = serviceDetail.icon;
+    document.getElementById('detail-title').textContent = serviceDetail.title;
+    document.getElementById('detail-description').textContent = serviceDetail.description;
+    document.getElementById('detail-content').innerHTML = serviceDetail.content;
+
+    // Görünümleri değiştir
+    document.getElementById('services-list').style.display = 'none';
+    document.getElementById('service-detail').style.display = 'block';
+
+    // Sayfayı başa kaydır
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Scroll animasyonları için
+    setTimeout(() => {
+        initializeScrollAnimations(new IntersectionObserver(() => { }, {}));
+    }, 100);
+}
+
+function showServicesList() {
+    const serviceDetail = document.getElementById('service-detail');
+    const servicesList = document.getElementById('services-list');
+
+    if (serviceDetail) serviceDetail.style.display = 'none';
+    if (servicesList) servicesList.style.display = 'block';
+
+    // URL'den hash'i kaldır
+    if (window.location.hash) {
+        history.replaceState(null, null, window.location.pathname);
+    }
+
+    // Sayfayı başa kaydır
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Service card'lardaki linkleri yakalamak için
+function updateServiceCardLinks() {
+    document.querySelectorAll('.service-card .read-more').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const href = e.target.getAttribute('href');
+            const hash = href.split('#')[1];
+            window.location.hash = hash;
+        });
+    });
+}
+
+// === BLOG DETAY SİSTEMİ ===
+
+
+// Blog hash routing sistemi
+let blogHashListenerAdded = false;
+
+function initBlogDetailSystem() {
+    // Hash değişikliklerini sadece bir kez dinle
+    if (!blogHashListenerAdded) {
+        window.addEventListener('hashchange', handleBlogHashChange);
+        window.addEventListener('load', handleBlogHashChange);
+        blogHashListenerAdded = true;
+    }
+
+    // Geri dön butonu
+    const backButton = document.getElementById('back-to-posts');
+    if (backButton && !backButton.hasAttribute('data-listener-added')) {
+        backButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPostsList();
+        });
+        backButton.setAttribute('data-listener-added', 'true');
+    }
+}
+
+function handleBlogHashChange() {
+    const hash = window.location.hash;
+
+    // Sadece blog sayfasındaysak hash değişikliklerini handle et
+    if (window.location.pathname.includes('blog.html')) {
+        if (hash.startsWith('#post-')) {
+            const postId = parseInt(hash.replace('#post-', ''));
+            if (!isNaN(postId)) {
+                showPostDetail(postId);
+            } else {
+                showPostsList();
+            }
+        } else {
+            showPostsList();
+        }
+    }
+}
+
+async function showPostDetail(postId) {
+    try {
+        const response = await fetch(`http://localhost:8061/api/posts/${postId}`);
+        if (!response.ok) {
+            throw new Error('Post not found');
+        }
+
+        const post = await response.json();
+
+        // Format date
+        const date = new Date(post.created_at);
+        const formattedDate = date.toLocaleDateString('tr-TR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Get author name (fallback to default if null)
+        const authorName = post.author && post.author.String ? post.author.String : "Av. Mehmet Polat";
+
+        // Get service name (fallback to default if null)
+        const serviceName = post.service_name && post.service_name.String ? post.service_name.String : "Hukuk";
+
+        // Detay bilgilerini güncelle
+        document.getElementById('detail-post-title').textContent = post.title;
+        document.getElementById('detail-post-date').textContent = formattedDate;
+        document.getElementById('detail-post-author').textContent = authorName;
+        document.getElementById('detail-post-service').textContent = serviceName;
+        document.getElementById('detail-post-content').innerHTML = post.content;
+
+        // Görünümleri değiştir
+        const postsList = document.getElementById('posts-list');
+        const postDetail = document.getElementById('post-detail');
+
+        if (postsList) postsList.style.display = 'none';
+        if (postDetail) postDetail.style.display = 'block';
+
+        // Sayfayı başa kaydır
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Scroll animasyonları için
+        setTimeout(() => {
+            initializeScrollAnimations(new IntersectionObserver(() => { }, {}));
+        }, 100);
+
+    } catch (error) {
+        console.error('Error fetching blog post:', error);
+        ToastManager.error('Blog yazısı bulunamadı.');
+        showPostsList();
+    }
+}
+
+function showPostsList() {
+    const postDetail = document.getElementById('post-detail');
+    const postsList = document.getElementById('posts-list');
+
+    if (postDetail) postDetail.style.display = 'none';
+    if (postsList) postsList.style.display = 'block';
+
+    // URL'den hash'i kaldır
+    if (window.location.hash) {
+        history.replaceState(null, null, window.location.pathname);
+    }
+
+    // Sayfayı başa kaydır
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Post card'lardaki linkleri yakalamak için
+function updatePostCardLinks() {
+    document.querySelectorAll('.post-card .read-more').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const href = e.target.getAttribute('href');
+            const hash = href.split('#')[1];
+            window.location.hash = hash;
+        });
+    });
+}
