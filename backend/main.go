@@ -317,7 +317,12 @@ func updateServiceHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+
+	// Güncellenmiş veriyi geri döndür
+	idInt, _ := strconv.Atoi(id)
+	s.ID = idInt
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(s)
 }
 
 // Hizmet Sil (DELETE /api/admin/services/{id})
@@ -336,11 +341,21 @@ func deleteServiceHandler(w http.ResponseWriter, r *http.Request) {
 // Ekip Üyesi Ekle (POST /api/admin/team)
 func createTeamMemberHandler(w http.ResponseWriter, r *http.Request) {
 	var t TeamMember
-	json.NewDecoder(r.Body).Decode(&t)
+	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	query := "INSERT INTO team_members (name, title, bio, image_url) VALUES (?, ?, ?, ?)"
-	res, _ := db.Exec(query, t.Name, t.Title, t.Bio, t.ImageURL)
+	res, err := db.Exec(query, t.Name, t.Title, t.Bio, t.ImageURL)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	id, _ := res.LastInsertId()
 	t.ID = int(id)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(t)
 }
 
@@ -349,17 +364,36 @@ func updateTeamMemberHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	var t TeamMember
-	json.NewDecoder(r.Body).Decode(&t)
+	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	query := "UPDATE team_members SET name=?, title=?, bio=?, image_url=? WHERE id=?"
-	db.Exec(query, t.Name, t.Title, t.Bio, t.ImageURL, id)
-	w.WriteHeader(http.StatusOK)
+	_, err := db.Exec(query, t.Name, t.Title, t.Bio, t.ImageURL, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Güncellenmiş veriyi geri döndür
+	idInt, _ := strconv.Atoi(id)
+	t.ID = idInt
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(t)
 }
 
 // Ekip Üyesi Sil (DELETE /api/admin/team/{id})
 func deleteTeamMemberHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	db.Exec("DELETE FROM team_members WHERE id=?", id)
+
+	_, err := db.Exec("DELETE FROM team_members WHERE id=?", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -495,7 +529,13 @@ func updatePostHandler(w http.ResponseWriter, r *http.Request) {
 func deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	db.Exec("DELETE FROM posts WHERE id=?", id)
+
+	_, err := db.Exec("DELETE FROM posts WHERE id=?", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
