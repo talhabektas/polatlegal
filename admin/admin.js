@@ -385,14 +385,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const imageUrlInput = document.getElementById('team-image');
         let imageUrl = imageUrlInput.value;
 
-        // Eğer dosya seçilmişse, dosya adını kullan
-        if (fileInput.files && fileInput.files[0]) {
-            const file = fileInput.files[0];
-            const fileName = file.name;
-            imageUrl = `assets/${fileName}`;
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        LoadingManager.show(submitBtn, id ? 'Güncelleniyor...' : 'Kaydediliyor...');
 
-            // Dosyayı assets klasörüne kopyala (bu normalde server-side yapılır)
-            NotificationManager.warning('Dosyayı manuel olarak assets klasörüne kopyalamayı unutmayın!');
+        // Eğer dosya seçilmişse, önce dosyayı yükle
+        if (fileInput.files && fileInput.files[0]) {
+            try {
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const uploadResponse = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: formData
+                });
+
+                if (uploadResponse.ok) {
+                    const uploadResult = await uploadResponse.json();
+                    imageUrl = uploadResult.url;
+                } else {
+                    const errorText = await uploadResponse.text();
+                    NotificationManager.error('Dosya yükleme başarısız: ' + errorText);
+                    LoadingManager.hide(submitBtn);
+                    return;
+                }
+            } catch (error) {
+                NotificationManager.error('Dosya yükleme hatası: ' + error.message);
+                LoadingManager.hide(submitBtn);
+                return;
+            }
         }
 
         const teamData = {
@@ -402,13 +426,18 @@ document.addEventListener('DOMContentLoaded', () => {
             image_url: imageUrl
         };
 
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        LoadingManager.show(submitBtn, id ? 'Güncelleniyor...' : 'Kaydediliyor...');
-
         try {
             await saveFormData('team', id, teamData);
             closeModal(teamModal);
             loadSectionData('team');
+
+            // Form'u temizle
+            document.getElementById('team-name').value = '';
+            document.getElementById('team-title').value = '';
+            document.getElementById('team-bio').value = '';
+            document.getElementById('team-image').value = '';
+            document.getElementById('team-image-file').value = '';
+
             NotificationManager.success(id ? 'Ekip üyesi başarıyla güncellendi!' : 'Yeni ekip üyesi başarıyla eklendi!');
         } catch (error) {
             NotificationManager.error(error.message);
@@ -708,7 +737,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const uploadResponse = await fetch('/api/admin/upload', {
                     method: 'POST',
                     headers: {
-                        'Authorization': localStorage.getItem('token')
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                     },
                     body: formData
                 });
@@ -733,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('token')
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                 },
                 body: JSON.stringify({
                     name,
@@ -744,7 +773,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
-                loadTeam();
+                loadSectionData('team');
                 document.getElementById('teamMemberName').value = '';
                 document.getElementById('teamMemberTitle').value = '';
                 document.getElementById('teamMemberBio').value = '';
