@@ -143,8 +143,13 @@
                     <textarea id="team-bio" rows="4" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="team-image">Resim URL</label>
-                    <input type="text" id="team-image" required>
+                    <label for="team-image-file">Resim Dosyası</label>
+                    <input type="file" id="team-image-file" accept="image/*">
+                    <small>JPG, PNG dosyaları desteklenir</small>
+                </div>
+                <div class="form-group">
+                    <label for="team-image">Resim URL (manuel girişte kullanın)</label>
+                    <input type="text" id="team-image" placeholder="Örn: assets/photo.jpg">
                 </div>
                 <button type="submit" class="btn btn-primary">Kaydet</button>
             </form>

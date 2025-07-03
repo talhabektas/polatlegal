@@ -379,11 +379,27 @@ document.addEventListener('DOMContentLoaded', () => {
     teamForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('team-id').value;
+
+        // File upload kontrolü
+        const fileInput = document.getElementById('team-image-file');
+        const imageUrlInput = document.getElementById('team-image');
+        let imageUrl = imageUrlInput.value;
+
+        // Eğer dosya seçilmişse, dosya adını kullan
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            const fileName = file.name;
+            imageUrl = `assets/${fileName}`;
+
+            // Dosyayı assets klasörüne kopyala (bu normalde server-side yapılır)
+            NotificationManager.warning('Dosyayı manuel olarak assets klasörüne kopyalamayı unutmayın!');
+        }
+
         const teamData = {
             name: document.getElementById('team-name').value,
             title: document.getElementById('team-title').value,
             bio: document.getElementById('team-bio').value,
-            image_url: document.getElementById('team-image').value
+            image_url: imageUrl
         };
 
         const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -667,5 +683,80 @@ document.addEventListener('DOMContentLoaded', () => {
             originalHandleEdit(item, sectionName);
         }
     };
+
+    // Ekip üyesi ekleme
+    async function addTeamMember() {
+        const name = document.getElementById('teamMemberName').value;
+        const title = document.getElementById('teamMemberTitle').value;
+        const bio = document.getElementById('teamMemberBio').value;
+        const imageUrl = document.getElementById('teamMemberImageUrl').value;
+        const imageFile = document.getElementById('teamMemberImageFile').files[0];
+
+        if (!name || !title || !bio) {
+            alert('Tüm alanları doldurun!');
+            return;
+        }
+
+        let finalImageUrl = imageUrl;
+
+        // Eğer dosya seçilmişse, önce dosyayı yükle
+        if (imageFile) {
+            try {
+                const formData = new FormData();
+                formData.append('file', imageFile);
+
+                const uploadResponse = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': localStorage.getItem('token')
+                    },
+                    body: formData
+                });
+
+                if (uploadResponse.ok) {
+                    const uploadResult = await uploadResponse.json();
+                    finalImageUrl = uploadResult.url;
+                } else {
+                    const errorText = await uploadResponse.text();
+                    alert('Dosya yükleme başarısız: ' + errorText);
+                    return;
+                }
+            } catch (error) {
+                alert('Dosya yükleme hatası: ' + error.message);
+                return;
+            }
+        }
+
+        // Şimdi ekip üyesini database'e ekle
+        try {
+            const response = await fetch('/api/admin/team', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('token')
+                },
+                body: JSON.stringify({
+                    name,
+                    title,
+                    bio,
+                    image_url: finalImageUrl
+                })
+            });
+
+            if (response.ok) {
+                loadTeam();
+                document.getElementById('teamMemberName').value = '';
+                document.getElementById('teamMemberTitle').value = '';
+                document.getElementById('teamMemberBio').value = '';
+                document.getElementById('teamMemberImageUrl').value = '';
+                document.getElementById('teamMemberImageFile').value = '';
+                alert('Ekip üyesi başarıyla eklendi!');
+            } else {
+                alert('Ekip üyesi eklenirken hata oluştu!');
+            }
+        } catch (error) {
+            alert('Bağlantı hatası: ' + error.message);
+        }
+    }
 });
 

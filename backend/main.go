@@ -4,9 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -73,6 +77,36 @@ func initDB() {
 	}
 
 	log.Println("Veritabanı bağlantısı başarılı!")
+
+	// Ekip üyelerinin fotoğraflarını güncelle
+	updateTeamPhotos()
+}
+
+func updateTeamPhotos() {
+	// Çağrı Polat'ın fotoğrafını güncelle
+	_, err := db.Exec("UPDATE team_members SET name = 'Av. Çağrı Polat', image_url = 'assets/cplt.jpg' WHERE id = 1")
+	if err != nil {
+		log.Printf("Çağrı Polat fotoğrafı güncellenirken hata: %v", err)
+	}
+
+	// Ertuğrul Polat'ın fotoğrafını güncelle
+	_, err = db.Exec("UPDATE team_members SET name = 'Av. Ertuğrul Polat', image_url = 'assets/ert.jpg' WHERE id = 2")
+	if err != nil {
+		log.Printf("Ertuğrul Polat fotoğrafı güncellenirken hata: %v", err)
+	}
+
+	// Blog yazılarındaki yazar isimlerini güncelle
+	_, err = db.Exec("UPDATE posts SET author_name = 'Çağrı Polat' WHERE author_id = 1")
+	if err != nil {
+		log.Printf("Çağrı Polat blog yazıları güncellenirken hata: %v", err)
+	}
+
+	_, err = db.Exec("UPDATE posts SET author_name = 'Ertuğrul Polat' WHERE author_id = 2")
+	if err != nil {
+		log.Printf("Ertuğrul Polat blog yazıları güncellenirken hata: %v", err)
+	}
+
+	log.Println("Ekip üyeleri fotoğrafları güncellendi!")
 }
 
 // --- JWT Ayarları ---
@@ -595,6 +629,68 @@ func deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Dosya Yükleme Handler (POST /api/admin/upload)
+func uploadFileHandler(w http.ResponseWriter, r *http.Request) {
+	// 10MB limit
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Dosya çok büyük (max 10MB)", http.StatusBadRequest)
+		return
+	}
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Dosya alınamadı", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Dosya uzantısını kontrol et
+	ext := strings.ToLower(filepath.Ext(handler.Filename))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+		http.Error(w, "Sadece JPG, JPEG ve PNG dosyaları desteklenir", http.StatusBadRequest)
+		return
+	}
+
+	// Assets klasörünün var olduğundan emin ol
+	assetsDir := "../frontend/assets"
+	if _, err := os.Stat(assetsDir); os.IsNotExist(err) {
+		err := os.MkdirAll(assetsDir, 0755)
+		if err != nil {
+			http.Error(w, "Assets klasörü oluşturulamadı", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Dosya yolu oluştur
+	fileName := handler.Filename
+	filePath := filepath.Join(assetsDir, fileName)
+
+	// Dosyayı kaydet
+	dst, err := os.Create(filePath)
+	if err != nil {
+		http.Error(w, "Dosya oluşturulamadı", http.StatusInternalServerError)
+		return
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		http.Error(w, "Dosya kopyalanamadı", http.StatusInternalServerError)
+		return
+	}
+
+	// Başarılı response
+	response := map[string]string{
+		"message":  "Dosya başarıyla yüklendi",
+		"filename": fileName,
+		"url":      "assets/" + fileName,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
 func main() {
 	// Veritabanını başlat
 	initDB()
@@ -635,6 +731,9 @@ func main() {
 	apiAdminProtected.HandleFunc("/posts", createPostHandler).Methods("POST")
 	apiAdminProtected.HandleFunc("/posts/{id}", updatePostHandler).Methods("PUT")
 	apiAdminProtected.HandleFunc("/posts/{id}", deletePostHandler).Methods("DELETE")
+
+	// Dosya yükleme rotası
+	apiAdminProtected.HandleFunc("/upload", uploadFileHandler).Methods("POST")
 
 	// Admin panelini sun
 	// /admin/ yolundan sonraki kısmı alıp ../admin dizininde arar.

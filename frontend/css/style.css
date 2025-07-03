@@ -4,8 +4,8 @@
     --primary-color: #1d1d1f;
     --primary-dark: #000000;
     --secondary-color: #86868b;
-    --accent-color: #1e3a8a;
-    --accent-dark: #1e40af;
+    --accent-color: #3b82f6;
+    --accent-dark: #2563eb;
     --background-color: #ffffff;
     --background-secondary: #f5f5f7;
     --surface-color: #ffffff;
@@ -470,9 +470,9 @@ p {
 
 /* === HEADER VE NAVİGASYON === */
 .main-header {
-    background: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--secondary-color) 100%);
     backdrop-filter: blur(10px);
-    color: var(--text-primary);
+    color: var(--text-light);
     padding: 1rem 0;
     position: sticky;
     top: 0;
@@ -482,7 +482,7 @@ p {
 }
 
 .main-header.scrolled {
-    background: rgba(255, 255, 255, 0.98);
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--secondary-color) 100%);
     box-shadow: var(--shadow-lg);
 }
 
@@ -494,12 +494,11 @@ p {
 
 .logo {
     font-size: 1.75rem;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.02em;
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+    text-shadow: 0 0 10px rgba(30, 58, 138, 0.3);
 }
 
 .main-nav ul {
@@ -510,11 +509,12 @@ p {
 .main-nav a {
     padding: 0.75rem 1rem;
     border-radius: var(--border-radius-sm);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--text-primary);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-light);
     position: relative;
     transition: var(--transition-smooth);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .main-nav a::before {
@@ -524,15 +524,16 @@ p {
     left: 50%;
     width: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    background: var(--accent-color);
     transition: var(--transition-smooth);
     transform: translateX(-50%);
 }
 
 .main-nav a:hover,
 .main-nav a.active {
-    color: var(--primary-color);
-    background: var(--background-secondary);
+    color: var(--accent-color);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 .main-nav a:hover::before,
@@ -547,17 +548,19 @@ p {
 .mobile-nav-toggle {
     display: none;
     background: none;
-    border: 2px solid var(--primary-color);
-    color: var(--primary-color);
+    border: 2px solid var(--text-light);
+    color: var(--text-light);
     padding: 0.5rem 1rem;
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
     transition: var(--transition-fast);
 }
 
 .mobile-nav-toggle:hover {
-    background: var(--primary-color);
+    background: var(--accent-color);
+    border-color: var(--accent-color);
     color: var(--text-light);
 }
 
@@ -568,10 +571,11 @@ p {
         url('../assets/gptlaw.png') center/cover no-repeat;
     color: white;
     text-align: center;
-    padding: 12rem 0 10rem;
+    padding: 12rem 0 8rem;
     position: relative;
     overflow: hidden;
     min-height: 75vh;
+    z-index: 1;
 }
 
 #hero::before {
@@ -632,18 +636,20 @@ p {
     background: var(--accent-dark);
 }
 
+
+
 /* === SERVICES PREVIEW SECTION === */
 #services-preview {
     background: linear-gradient(to bottom,
-            rgba(255, 255, 255, 0.95) 0%,
-            rgba(250, 249, 247, 0.98) 50%,
+            rgba(255, 255, 255, 0.98) 0%,
+            rgba(250, 249, 247, 1) 50%,
             #faf9f7 100%);
-    padding: 4rem 0;
-    margin-top: -2rem;
+    padding: 5rem 0 4rem 0;
+    margin-top: 0;
     position: relative;
-    z-index: 2;
-    border-radius: 30px 30px 0 0;
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+    z-index: 3;
+    border-radius: 40px 40px 0 0;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
 }
 
 #services-preview .section-title {
@@ -654,11 +660,14 @@ p {
 /* === BLOG PREVIEW SECTION === */
 #blog-preview {
     background: #faf9f7;
-    padding: 4rem 0;
+    padding: 4rem 0 5rem 0;
+    position: relative;
+    z-index: 2;
 }
 
 #blog-preview .section-title {
     color: #2d3748;
+    margin-bottom: 2.5rem;
 }
 
 /* === FOOTER === */
@@ -694,7 +703,7 @@ p {
         top: 100%;
         left: 0;
         width: 100%;
-        background: rgba(255, 255, 255, 0.98);
+        background: linear-gradient(135deg, var(--text-primary) 0%, var(--secondary-color) 100%);
         backdrop-filter: blur(10px);
         box-shadow: var(--shadow-lg);
         border-radius: 0 0 var(--border-radius) var(--border-radius);
@@ -710,6 +719,7 @@ p {
         padding: 1rem;
         border-radius: var(--border-radius-sm);
         text-align: center;
+        color: var(--text-light);
     }
 
     .mobile-nav-toggle {
@@ -732,6 +742,37 @@ p {
         font-size: 2.5rem;
     }
 
+    #services-preview {
+        padding: 3rem 0 2rem 0;
+        border-radius: 25px 25px 0 0;
+    }
+
+    #blog-preview {
+        padding: 3rem 0 3rem 0;
+    }
+
+    .page-contact #hero {
+        padding: 8rem 0 4rem;
+        min-height: 60vh;
+        background:
+            linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)),
+            url('../assets/telefonlaw.png') center center/cover no-repeat;
+    }
+
+    .page-contact #hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .page-contact #hero p {
+        font-size: 1.1rem;
+    }
+
+    .page-contact .contact-content-area {
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+        border-radius: 25px 25px 0 0;
+        margin-top: 0;
+    }
 
 }
 
@@ -1500,4 +1541,88 @@ p {
 
 .post-detail-content {
     animation: fadeInScale 0.8s ease-out;
+}
+
+/* === PAGE-SPECIFIC STYLES === */
+.page-home main {
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+/* === CONTACT PAGE STYLES === */
+.page-contact main {
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-contact #hero {
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)),
+        url('../assets/telefonlaw.png') center 20%/cover no-repeat;
+    color: white;
+    text-align: center;
+    padding: 12rem 0 6rem;
+    position: relative;
+    overflow: hidden;
+    min-height: 70vh;
+    z-index: 1;
+}
+
+.page-contact #hero h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.page-contact #hero p {
+    font-size: 1.3rem;
+    margin-bottom: 3rem;
+    opacity: 0.9;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: rgba(255, 255, 255, 0.95);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.4;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.page-contact #hero .btn {
+    font-size: 1.1rem;
+    padding: 16px 32px;
+    background: var(--accent-color);
+    color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.4);
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page-contact #hero .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(30, 58, 138, 0.5);
+    background: var(--accent-dark);
+}
+
+/* Contact Content Area */
+.page-contact .contact-content-area {
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0.98) 0%,
+            rgba(247, 255, 247, 1) 50%,
+            #f7fff7 100%);
+    border-radius: 40px 40px 0 0;
+    margin-top: 0;
+    position: relative;
+    z-index: 3;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+    padding-top: 5rem;
+    padding-bottom: 5rem;
 }
