@@ -166,11 +166,14 @@ function initializeScrollAnimations(observer) {
         observer.observe(title);
     });
 
-    // Buttons and CTAs - scale animation
+    // Buttons and CTAs - scale animation (contact butonlarını hariç tut)
     document.querySelectorAll('.btn, .read-more').forEach((btn, index) => {
-        btn.classList.add('scroll-animate-scale');
-        btn.style.transitionDelay = `${index * 0.05}s`;
-        observer.observe(btn);
+        // Contact butonlarını hariç tut
+        if (!btn.closest('.service-contact') && !btn.closest('.post-contact')) {
+            btn.classList.add('scroll-animate-scale');
+            btn.style.transitionDelay = `${index * 0.05}s`;
+            observer.observe(btn);
+        }
     });
 
     // Grid containers - staggered children
@@ -375,7 +378,7 @@ async function loadAllPosts() {
 }
 
 // === CONTACT FORM ===
-function handleContactFormSubmit(event) {
+async function handleContactFormSubmit(event) {
     event.preventDefault();
 
     const form = event.target;
@@ -383,20 +386,54 @@ function handleContactFormSubmit(event) {
     const data = Object.fromEntries(formData.entries());
 
     // Validation
-    if (!data.name || !data.email || !data.message) {
+    if (!data.name || !data.email || !data.subject || !data.message) {
         toast.show('Hata', 'Lütfen tüm gerekli alanları doldurun.', 'error');
+        return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+        toast.show('Hata', 'Lütfen geçerli bir email adresi girin.', 'error');
         return;
     }
 
     const submitButton = form.querySelector('button[type="submit"]');
     LoadingManager.show(submitButton, 'Gönderiliyor...');
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+        // API'ye mesaj gönder
+        const response = await fetch(`${API_BASE_URL}/contact`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: data.name,
+                email: data.email,
+                subject: data.subject,
+                message: data.message
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Form'u temizle
         form.reset();
+
+        // Başarılı mesaj göster
+        toast.show('Başarılı', result.message || 'Mesajınız başarıyla gönderildi! En kısa sürede size dönüş yapacağız.', 'success');
+
+    } catch (error) {
+        console.error('Contact form error:', error);
+        toast.show('Hata', 'Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.', 'error');
+    } finally {
         LoadingManager.hide(submitButton);
-        toast.show('Başarılı', 'Mesajınız başarıyla gönderildi! En kısa sürede size dönüş yapacağız.', 'success');
-    }, 2000);
+    }
 }
 
 // === MOBILE NAVIGATION ===
@@ -426,8 +463,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize toast manager
     const toast = new ToastManager();
 
-    // Initialize UI enhancements
-    initScrollEffects();
+    // Initialize UI enhancements - scroll effects only on homepage
+    const isHomepage = window.location.pathname === '/' ||
+        window.location.pathname === '/index.html' ||
+        window.location.pathname.endsWith('/index.html') ||
+        window.location.pathname === '/c:/Users/Pc/Desktop/polatlar/frontend/index.html';
+
+    if (isHomepage) {
+        initScrollEffects();
+    }
+
     initMobileNavigation();
 
     // Page-specific initializations
@@ -488,10 +533,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Show welcome message
-    setTimeout(() => {
-        toast.show('Hoş Geldiniz', 'Polatlar Hukuk Bürosu\'na hoş geldiniz!', 'info', 4000);
-    }, 1000);
+    // Show welcome message only on homepage
+    if (isHomepage) {
+        setTimeout(() => {
+            toast.show('Hoş Geldiniz', 'Polatlar Hukuk Bürosu\'na hoş geldiniz!', 'info', 4000);
+        }, 1000);
+    }
 });
 
 // === SERVİS DETAY SİSTEMİ ===
@@ -524,6 +571,14 @@ const serviceDetails = {
                 <li>Mahkeme aşamasında savunma</li>
                 <li>Temyiz ve istinaf süreçleri</li>
             </ul>
+            
+            <div class="service-contact">
+                <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                <a href="iletisim.html" class="btn">
+                    <i class="fas fa-phone"></i> İletişime Geçin
+                </a>
+            </div>
         `
     },
     2: {
@@ -554,6 +609,14 @@ const serviceDetails = {
                 <li>Hızlı ve etkili çözüm arayışı</li>
                 <li>Psikolojik destek koordinasyonu</li>
             </ul>
+            
+            <div class="service-contact">
+                <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                <a href="iletisim.html" class="btn">
+                    <i class="fas fa-phone"></i> İletişime Geçin
+                </a>
+            </div>
         `
     },
     3: {
@@ -584,6 +647,14 @@ const serviceDetails = {
                 <li>Siber saldırı sonrası hukuki destek</li>
                 <li>Telif hakkı ihlali davaları</li>
             </ul>
+            
+            <div class="service-contact">
+                <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                <a href="iletisim.html" class="btn">
+                    <i class="fas fa-phone"></i> İletişime Geçin
+                </a>
+            </div>
         `
     },
     4: {
@@ -614,6 +685,14 @@ const serviceDetails = {
                 <li>Uyuşmazlık çözümü</li>
                 <li>Mahkeme sürecinde temsil</li>
             </ul>
+            
+            <div class="service-contact">
+                <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                <a href="iletisim.html" class="btn">
+                    <i class="fas fa-phone"></i> İletişime Geçin
+                </a>
+            </div>
         `
     },
     5: {
@@ -644,6 +723,14 @@ const serviceDetails = {
                 <li>Belediye ve idari işlemler</li>
                 <li>Emlak vergisi ve harç hesaplamaları</li>
             </ul>
+            
+            <div class="service-contact">
+                <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                <a href="iletisim.html" class="btn">
+                    <i class="fas fa-phone"></i> İletişime Geçin
+                </a>
+            </div>
         `
     },
     6: {
@@ -674,6 +761,14 @@ const serviceDetails = {
                 <li>Alternatif çözüm yollarının değerlendirilmesi</li>
                 <li>Risk analizi ve maliyet hesaplaması</li>
             </ul>
+            
+            <div class="service-contact">
+                <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                <a href="iletisim.html" class="btn">
+                    <i class="fas fa-phone"></i> İletişime Geçin
+                </a>
+            </div>
         `
     },
     7: {
@@ -704,6 +799,14 @@ const serviceDetails = {
                 <li>Kültürel ve sosyal özellikler gözetimi</li>
                 <li>Yerel ağ ve referanslar</li>
             </ul>
+            
+            <div class="service-contact">
+                <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                <a href="iletisim.html" class="btn">
+                    <i class="fas fa-phone"></i> İletişime Geçin
+                </a>
+            </div>
         `
     }
 };
@@ -875,7 +978,17 @@ async function showPostDetail(postId) {
         document.getElementById('detail-post-date').textContent = formattedDate;
         document.getElementById('detail-post-author').textContent = authorName;
         document.getElementById('detail-post-service').textContent = serviceName;
-        document.getElementById('detail-post-content').innerHTML = post.content;
+
+        // Post content'e iletişim butonu da ekliyoruz
+        document.getElementById('detail-post-content').innerHTML = post.content + `
+            <div class="post-contact">
+                <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                <a href="iletisim.html" class="btn">
+                    <i class="fas fa-phone"></i> İletişime Geçin
+                </a>
+            </div>
+        `;
 
         // Görünümleri değiştir
         const postsList = document.getElementById('posts-list');

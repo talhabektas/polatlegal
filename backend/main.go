@@ -7,11 +7,14 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/smtp"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"crypto/tls"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v5"
@@ -57,6 +60,14 @@ type PostRequest struct {
 	Content   string `json:"content"`
 	Author    string `json:"author"`
 	ServiceID string `json:"service_id"` // String olarak al, parse ederiz
+}
+
+// ContactForm iletişim formu için model
+type ContactForm struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
 }
 
 // --- Veritabanı Bağlantısı ---
@@ -111,6 +122,90 @@ func updateTeamPhotos() {
 
 // --- JWT Ayarları ---
 var jwtKey = []byte("my_secret_key") // Üretimde bunu güvenli bir yerden alın!
+
+// --- Email Gönderimi ---
+func sendEmail(to, subject, body string) error {
+	from := "noreply@polatlarhukuk.com"
+	password := "" // Şimdilik boş, test için log kullanacağız
+
+	// Email bilgilerini konsola yazdır (test için)
+	log.Printf("=== EMAIL GÖNDERIM TALEBI ===")
+	log.Printf("Alıcı: %s", to)
+	log.Printf("Konu: %s", subject)
+	log.Printf("Gönderen: %s", from)
+	log.Printf("Mesaj: %s", body)
+	log.Printf("=============================")
+
+	// Test için şimdilik sadece log yapalım
+	// Gerçek email gönderimi için Gmail App Password gerekir
+	if password == "" {
+		log.Println("Email gönderim servisi test modunda çalışıyor")
+		return nil
+	}
+
+	// Gmail SMTP ayarları
+	smtpHost := "smtp.gmail.com"
+
+	// Email içeriği
+	message := []byte("To: " + to + "\r\n" +
+		"Subject: " + subject + "\r\n" +
+		"\r\n" +
+		body + "\r\n")
+
+	// SMTP Auth
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	// TLS config
+	tlsconfig := &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         smtpHost,
+	}
+
+	// Connect to SMTP server
+	conn, err := tls.Dial("tcp", smtpHost+":465", tlsconfig)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	// Create SMTP client
+	client, err := smtp.NewClient(conn, smtpHost)
+	if err != nil {
+		return err
+	}
+	defer client.Quit()
+
+	// Auth
+	if err = client.Auth(auth); err != nil {
+		return err
+	}
+
+	// Send email
+	if err = client.Mail(from); err != nil {
+		return err
+	}
+
+	if err = client.Rcpt(to); err != nil {
+		return err
+	}
+
+	w, err := client.Data()
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(message)
+	if err != nil {
+		return err
+	}
+
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // --- API Handler'ları ---
 
@@ -269,6 +364,56 @@ func getPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(p)
+}
+
+// İletişim formu handler'ı
+func contactFormHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Only POST method allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var form ContactForm
+	if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	// Boş alanları kontrol et
+	if form.Name == "" || form.Email == "" || form.Subject == "" || form.Message == "" {
+		http.Error(w, "All fields are required", http.StatusBadRequest)
+		return
+	}
+
+	// Email içeriğini hazırla
+	emailBody := fmt.Sprintf(`
+Hukuk Bürosu İletişim Formu
+
+Gönderen: %s
+Email: %s
+Konu: %s
+
+Mesaj:
+%s
+
+---
+Bu mesaj www.polatlarhukuk.com iletişim formundan gönderilmiştir.
+`, form.Name, form.Email, form.Subject, form.Message)
+
+	// Email gönder
+	err := sendEmail("talhabektas6116@gmail.com", "İletişim Formu: "+form.Subject, emailBody)
+	if err != nil {
+		log.Printf("Email gönderim hatası: %v", err)
+		http.Error(w, "Email could not be sent", http.StatusInternalServerError)
+		return
+	}
+
+	// Başarılı yanıt
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Mesajınız başarıyla gönderildi!",
+		"status":  "success",
+	})
 }
 
 // --- API Handler'ları (Admin) ---
@@ -705,6 +850,7 @@ func main() {
 	apiPublic.HandleFunc("/team", getTeamMembers).Methods("GET")
 	apiPublic.HandleFunc("/posts/{id}", getPost).Methods("GET")
 	apiPublic.HandleFunc("/posts", getPosts).Methods("GET")
+	apiPublic.HandleFunc("/contact", contactFormHandler).Methods("POST")
 
 	// Admin API Rotaları
 	// 1. Korumasız Rota: Login
