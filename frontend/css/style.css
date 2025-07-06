@@ -471,9 +471,9 @@ p {
     text-align: center;
     max-width: 800px;
     margin: 0 auto 3rem auto;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-primary);
     line-height: 1.7;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: none;
 }
 
 /* === HEADER VE NAVİGASYON === */
