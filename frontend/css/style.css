@@ -601,6 +601,32 @@ p {
     color: white;
 }
 
+/* === LANGUAGE SWITCH === */
+.language-switch {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-left: 1rem;
+}
+
+.lang-btn {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--border-radius-sm);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.lang-btn:hover,
+.lang-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-color: white;
+}
+
 /* === APPLE TARZINDA HERO BÖLÜMÜ === */
 #hero {
     background:
@@ -761,6 +787,11 @@ p {
 
     .mobile-nav-toggle {
         display: block;
+    }
+
+    .language-switch {
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
     }
 
     .main-header {
