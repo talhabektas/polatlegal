@@ -95,7 +95,7 @@ func initDB() {
 
 func updateTeamPhotos() {
 	// Çağrı Polat'ın fotoğrafını güncelle
-	_, err := db.Exec("UPDATE team_members SET name = 'Av. Çağrı Polat', image_url = 'assets/cplt.jpg' WHERE id = 1")
+	_, err := db.Exec("UPDATE team_members SET name = 'Av. Çağrı Polat', image_url = 'assets/av-s-cagri-polat-1704710940-684_small.jpg' WHERE id = 1")
 	if err != nil {
 		log.Printf("Çağrı Polat fotoğrafı güncellenirken hata: %v", err)
 	}

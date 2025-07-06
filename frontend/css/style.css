@@ -432,11 +432,15 @@ p {
 
 /* === SAYFA BAŞLIĞI (PAGE HEADER) === */
 .page-header {
-    color: var(--text-primary);
-    padding: 4rem 0;
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2)),
+        url('../assets/gptlaw.png') center/cover no-repeat;
+    color: white;
+    padding: 8rem 0 4rem;
     text-align: center;
     position: relative;
     overflow: hidden;
+    min-height: 60vh;
 }
 
 .page-header::before {
@@ -458,7 +462,8 @@ p {
     font-size: 3.5rem;
     font-weight: 800;
     margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: white;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
 }
 
 .page-intro {
@@ -466,25 +471,30 @@ p {
     text-align: center;
     max-width: 800px;
     margin: 0 auto 3rem auto;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.9);
     line-height: 1.7;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* === HEADER VE NAVİGASYON === */
 .main-header {
-    background: linear-gradient(135deg, var(--background-secondary) 0%, var(--accent-color) 100%);
-    backdrop-filter: blur(10px);
-    color: var(--text-primary);
+    background: transparent;
+    backdrop-filter: none;
+    color: white;
     padding: 1rem 0;
-    position: sticky;
+    position: absolute;
     top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
     z-index: 1000;
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
     transition: var(--transition-smooth);
 }
 
 .main-header.scrolled {
-    background: linear-gradient(135deg, var(--background-secondary) 0%, var(--accent-color) 100%);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
     box-shadow: var(--shadow-lg);
 }
 
@@ -498,14 +508,35 @@ p {
     font-size: 1.75rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: var(--primary-dark);
+    color: white;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-    text-shadow: 0 0 10px rgba(109, 90, 66, 0.3);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    position: relative;
+    z-index: 20;
+}
+
+.logo img {
+    height: 110px;
+    width: auto;
+    max-width: 400px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+    vertical-align: middle;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    position: relative;
+    z-index: 10;
 }
 
 .main-nav ul {
     display: flex;
     gap: 2rem;
+    position: relative;
+    z-index: 15;
 }
 
 .main-nav a {
@@ -513,10 +544,11 @@ p {
     border-radius: var(--border-radius-sm);
     font-weight: 600;
     letter-spacing: -0.01em;
-    color: var(--text-primary);
+    color: rgba(255, 255, 255, 0.9);
     position: relative;
     transition: var(--transition-smooth);
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .main-nav a::before {
@@ -526,15 +558,15 @@ p {
     left: 50%;
     width: 0;
     height: 2px;
-    background: var(--accent-color);
+    background: white;
     transition: var(--transition-smooth);
     transform: translateX(-50%);
 }
 
 .main-nav a:hover,
 .main-nav a.active {
-    color: var(--accent-dark);
-    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
 }
 
@@ -550,33 +582,36 @@ p {
 .mobile-nav-toggle {
     display: none;
     background: none;
-    border: 2px solid var(--text-primary);
-    color: var(--text-primary);
+    border: 2px solid white;
+    color: white;
     padding: 0.5rem 1rem;
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     font-weight: 600;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
     transition: var(--transition-fast);
+    position: relative;
+    z-index: 15;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .mobile-nav-toggle:hover {
-    background: var(--accent-dark);
-    border-color: var(--accent-dark);
-    color: var(--text-light);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: white;
+    color: white;
 }
 
 /* === APPLE TARZINDA HERO BÖLÜMÜ === */
 #hero {
     background:
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)),
+        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2)),
         url('../assets/gptlaw.png') center/cover no-repeat;
     color: white;
     text-align: center;
-    padding: 12rem 0 8rem;
+    padding: 10rem 0 8rem;
     position: relative;
     overflow: hidden;
-    min-height: 75vh;
+    min-height: 100vh;
     z-index: 1;
 }
 
@@ -643,9 +678,9 @@ p {
 /* === SERVICES PREVIEW SECTION === */
 #services-preview {
     background: linear-gradient(to bottom,
-            rgba(255, 255, 255, 0.98) 0%,
-            rgba(250, 249, 247, 1) 50%,
-            #faf9f7 100%);
+            #f8f9fa 0%,
+            #f1f3f4 50%,
+            #f8f9fa 100%);
     padding: 5rem 0 4rem 0;
     margin-top: 0;
     position: relative;
@@ -661,7 +696,7 @@ p {
 
 /* === BLOG PREVIEW SECTION === */
 #blog-preview {
-    background: var(--background-secondary);
+    background: linear-gradient(135deg, #f1f3f4 0%, #f8f9fa 100%);
     padding: 4rem 0 5rem 0;
     position: relative;
     z-index: 2;
@@ -705,8 +740,8 @@ p {
         top: 100%;
         left: 0;
         width: 100%;
-        background: linear-gradient(135deg, var(--background-secondary) 0%, var(--accent-color) 100%);
-        backdrop-filter: blur(10px);
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(15px);
         box-shadow: var(--shadow-lg);
         border-radius: 0 0 var(--border-radius) var(--border-radius);
     }
@@ -721,11 +756,24 @@ p {
         padding: 1rem;
         border-radius: var(--border-radius-sm);
         text-align: center;
-        color: var(--text-primary);
+        color: white;
     }
 
     .mobile-nav-toggle {
         display: block;
+    }
+
+    .main-header {
+        padding: 0.8rem 0;
+    }
+
+    .logo img {
+        height: 90px;
+        max-width: 300px;
+    }
+
+    #hero {
+        padding: 7rem 0 6rem;
     }
 
     #hero h1 {
@@ -740,6 +788,11 @@ p {
         font-size: 2rem;
     }
 
+    .page-header {
+        padding: 6rem 0 3rem;
+        min-height: 50vh;
+    }
+
     .page-header h1 {
         font-size: 2.5rem;
     }
@@ -747,17 +800,22 @@ p {
     #services-preview {
         padding: 3rem 0 2rem 0;
         border-radius: 25px 25px 0 0;
+        background: linear-gradient(to bottom,
+                #f8f9fa 0%,
+                #f1f3f4 50%,
+                #f8f9fa 100%);
     }
 
     #blog-preview {
         padding: 3rem 0 3rem 0;
+        background: linear-gradient(135deg, #f1f3f4 0%, #f8f9fa 100%);
     }
 
     .page-contact #hero {
-        padding: 8rem 0 4rem;
-        min-height: 60vh;
+        padding: 7rem 0 4rem;
+        min-height: 100vh;
         background:
-            linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)),
+            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2)),
             url('../assets/telefonlaw.png') center center/cover no-repeat;
     }
 
@@ -774,6 +832,28 @@ p {
         padding-bottom: 3rem;
         border-radius: 25px 25px 0 0;
         margin-top: 0;
+    }
+
+    .page-team #hero {
+        padding: 7rem 0 4rem;
+        min-height: 100vh;
+        background:
+            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2)),
+            url('../assets/gptlaw.png') center/cover no-repeat;
+    }
+
+    .page-team #hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .page-team #hero p {
+        font-size: 1.1rem;
+    }
+
+    /* Team card fotoğrafı mobil için optimize */
+    .team-card-img {
+        object-position: center center;
+        object-fit: cover;
     }
 
 }
@@ -1013,8 +1093,9 @@ p {
     width: 100%;
     height: 300px;
     object-fit: cover;
-    object-position: top;
+    object-position: center 20%;
     transition: var(--transition-smooth);
+    border-radius: 8px 8px 0 0;
 }
 
 .team-card:hover .team-card-img {
@@ -1047,6 +1128,14 @@ p {
     font-size: 0.95rem;
     color: var(--text-secondary);
     line-height: 1.6;
+}
+
+/* Desktop için team card fotoğrafı optimizasyonu */
+@media (min-width: 769px) {
+    .team-card-img {
+        object-position: center 15%;
+        height: 320px;
+    }
 }
 
 /* === BLOG LİSTESİ STİLLERİ === */
@@ -1230,6 +1319,77 @@ p {
 
 .page-team {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.page-team #hero {
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2)),
+        url('../assets/gptlaw.png') center/cover no-repeat;
+    color: white;
+    text-align: center;
+    padding: 10rem 0 6rem;
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+    z-index: 1;
+}
+
+.page-team #hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    opacity: 1;
+}
+
+.page-team #hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.page-team #hero h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.page-team #hero p {
+    font-size: 1.3rem;
+    margin-bottom: 3rem;
+    opacity: 0.9;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: rgba(255, 255, 255, 0.95);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.4;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.page-team #hero .btn {
+    font-size: 1.1rem;
+    padding: 16px 32px;
+    background: var(--accent-color);
+    color: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 4px 14px rgba(166, 139, 106, 0.4);
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page-team #hero .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(166, 139, 106, 0.5);
+    background: var(--accent-dark);
 }
 
 .page-blog {
@@ -1569,14 +1729,14 @@ p {
 
 .page-contact #hero {
     background:
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)),
+        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2)),
         url('../assets/telefonlaw.png') center 20%/cover no-repeat;
     color: white;
     text-align: center;
-    padding: 12rem 0 6rem;
+    padding: 10rem 0 6rem;
     position: relative;
     overflow: hidden;
-    min-height: 70vh;
+    min-height: 100vh;
     z-index: 1;
 }
 
