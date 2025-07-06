@@ -678,9 +678,9 @@ p {
 /* === SERVICES PREVIEW SECTION === */
 #services-preview {
     background: linear-gradient(to bottom,
-            #f8f9fa 0%,
-            #f1f3f4 50%,
-            #f8f9fa 100%);
+            rgba(255, 255, 255, 0.98) 0%,
+            rgba(250, 249, 247, 1) 50%,
+            #faf9f7 100%);
     padding: 5rem 0 4rem 0;
     margin-top: 0;
     position: relative;
@@ -696,7 +696,7 @@ p {
 
 /* === BLOG PREVIEW SECTION === */
 #blog-preview {
-    background: linear-gradient(135deg, #f1f3f4 0%, #f8f9fa 100%);
+    background: var(--background-secondary);
     padding: 4rem 0 5rem 0;
     position: relative;
     z-index: 2;
@@ -800,15 +800,10 @@ p {
     #services-preview {
         padding: 3rem 0 2rem 0;
         border-radius: 25px 25px 0 0;
-        background: linear-gradient(to bottom,
-                #f8f9fa 0%,
-                #f1f3f4 50%,
-                #f8f9fa 100%);
     }
 
     #blog-preview {
         padding: 3rem 0 3rem 0;
-        background: linear-gradient(135deg, #f1f3f4 0%, #f8f9fa 100%);
     }
 
     .page-contact #hero {
