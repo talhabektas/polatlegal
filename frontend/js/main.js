@@ -519,8 +519,8 @@ document.addEventListener('DOMContentLoaded', () => {
         contactForm.addEventListener('submit', handleContactFormSubmit);
     }
 
-    // Add smooth scroll behavior to anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    // Add smooth scroll behavior only to same-page anchor links (not navigation links)
+    document.querySelectorAll('a[href^="#"]:not(.nav-link)').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
@@ -871,7 +871,7 @@ function showServiceDetail(serviceId) {
     document.getElementById('service-detail').style.display = 'block';
 
     // Sayfayı başa kaydır
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
 
     // Scroll animasyonları için
     setTimeout(() => {
@@ -892,7 +892,7 @@ function showServicesList() {
     }
 
     // Sayfayı başa kaydır
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
 // Service card'lardaki linkleri yakalamak için
@@ -998,7 +998,7 @@ async function showPostDetail(postId) {
         if (postDetail) postDetail.style.display = 'block';
 
         // Sayfayı başa kaydır
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'auto' });
 
         // Scroll animasyonları için
         setTimeout(() => {
@@ -1025,7 +1025,7 @@ function showPostsList() {
     }
 
     // Sayfayı başa kaydır
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
 // Post card'lardaki linkleri yakalamak için
