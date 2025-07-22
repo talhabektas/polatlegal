@@ -367,11 +367,11 @@ Mesaj:
 %s
 
 ---
-Bu mesaj www.polatlarhukuk.com iletişim formundan gönderilmiştir.
+Bu mesaj www.polatlegal.com iletişim formundan gönderilmiştir.
 `, form.Name, form.Email, form.Subject, form.Message)
 
 	// Email gönder
-	err := sendEmail("talhabektas6116@gmail.com", "İletişim Formu: "+form.Subject, emailBody)
+	err := sendEmail("avcagripolat@hotmail.com", "İletişim Formu: "+form.Subject, emailBody)
 	if err != nil {
 		log.Printf("Email gönderim hatası: %v", err)
 		http.Error(w, "Email could not be sent", http.StatusInternalServerError)

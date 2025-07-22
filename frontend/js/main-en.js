@@ -536,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show welcome message only on homepage
     if (isHomepage) {
         setTimeout(() => {
-            toast.show('Welcome', 'Welcome to Polat Law Firm!', 'info', 4000);
+            toast.show('Welcome', 'Welcome to Polat Legal!', 'info', 4000);
         }, 1000);
     }
 });
