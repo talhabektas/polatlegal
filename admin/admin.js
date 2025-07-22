@@ -89,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
             adminPanelContainer.classList.add('active');
             loadSectionData('services');
             loadServicesIntoPostForm();
+            initializeIconSelector();
+            initializeDynamicLists();
             NotificationManager.success('Admin paneline hoş geldiniz!');
         } else {
             loginContainer.classList.add('active');
@@ -297,6 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // === ADD NEW BUTTONS ===
     document.querySelector('#services-management .btn-primary').addEventListener('click', () => {
         document.getElementById('modal-title').textContent = 'Yeni Hizmet Ekle';
+        // Form'u temizle
+        document.getElementById('service-form').reset();
+        document.getElementById('service-id').value = '';
+        // İkon preview'ını sıfırla
+        updateIconPreview('');
+        // Dinamik listeleri temizle
+        updateServiceAreasList([]);
+        updateSecondItemsList([]);
         openModal(serviceModal);
     });
 
@@ -317,7 +327,20 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('service-id').value = item.id;
             document.getElementById('service-title').value = item.title;
             document.getElementById('service-description').value = item.description;
+            document.getElementById('service-hero-description').value = item.hero_description || '';
             document.getElementById('service-icon').value = item.icon_class;
+            document.getElementById('service-second-title').value = item.second_section_title || '';
+            document.getElementById('service-second-description').value = item.second_section_description || '';
+
+            // JSON alanları parse et
+            const serviceAreas = item.service_areas ? JSON.parse(item.service_areas) : [];
+            const secondItems = item.second_section_items ? JSON.parse(item.second_section_items) : [];
+
+            // Dinamik listeleri güncelle
+            updateServiceAreasList(serviceAreas);
+            updateSecondItemsList(secondItems);
+
+            updateIconPreview(item.icon_class); // Preview'ı güncelle
             openModal(serviceModal);
         } else if (sectionName === 'team') {
             document.querySelector('#team-modal h2').textContent = 'Ekip Üyesini Düzenle';
@@ -365,10 +388,20 @@ document.addEventListener('DOMContentLoaded', () => {
     serviceForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('service-id').value;
+
+        // Form verilerini topla
+        const serviceAreas = getServiceAreasFromForm();
+        const secondItems = getSecondItemsFromForm();
+
         const serviceData = {
             title: document.getElementById('service-title').value,
             description: document.getElementById('service-description').value,
-            icon_class: document.getElementById('service-icon').value
+            hero_description: document.getElementById('service-hero-description').value,
+            icon_class: document.getElementById('service-icon').value,
+            service_areas: JSON.stringify(serviceAreas),
+            second_section_title: document.getElementById('service-second-title').value,
+            second_section_description: document.getElementById('service-second-description').value,
+            second_section_items: JSON.stringify(secondItems)
         };
 
         const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -798,4 +831,216 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// === ICON SELECTOR ===
+function initializeIconSelector() {
+    const iconSelect = document.getElementById('service-icon');
+    const iconPreview = document.getElementById('icon-preview');
+
+    // Popüler FontAwesome ikonları
+    const icons = [
+        { class: 'fas fa-gavel', name: 'Tokmak (Hukuk)' },
+        { class: 'fas fa-balance-scale', name: 'Adalet Terazisi' },
+        { class: 'fas fa-briefcase', name: 'Çanta (İş)' },
+        { class: 'fas fa-file-contract', name: 'Sözleşme' },
+        { class: 'fas fa-shield-alt', name: 'Koruma' },
+        { class: 'fas fa-handshake', name: 'Anlaşma' },
+        { class: 'fas fa-building', name: 'Bina' },
+        { class: 'fas fa-home', name: 'Ev' },
+        { class: 'fas fa-heart', name: 'Kalp (Aile)' },
+        { class: 'fas fa-users', name: 'Kişiler' },
+        { class: 'fas fa-user-tie', name: 'İş Adamı' },
+        { class: 'fas fa-laptop', name: 'Bilgisayar' },
+        { class: 'fas fa-globe', name: 'Dünya' },
+        { class: 'fas fa-money-bill', name: 'Para' },
+        { class: 'fas fa-chart-line', name: 'Grafik' },
+        { class: 'fas fa-cogs', name: 'Ayarlar' },
+        { class: 'fas fa-university', name: 'Banka/Kurum' },
+        { class: 'fas fa-car', name: 'Araba' },
+        { class: 'fas fa-plane', name: 'Uçak' },
+        { class: 'fas fa-ship', name: 'Gemi' },
+        { class: 'fas fa-truck', name: 'Kamyon' },
+        { class: 'fas fa-industry', name: 'Sanayi' },
+        { class: 'fas fa-hammer', name: 'Çekiç' },
+        { class: 'fas fa-wrench', name: 'İngiliz Anahtarı' },
+        { class: 'fas fa-hard-hat', name: 'Baret' },
+        { class: 'fas fa-stethoscope', name: 'Stetoskop' },
+        { class: 'fas fa-pills', name: 'İlaç' },
+        { class: 'fas fa-graduation-cap', name: 'Mezuniyet' },
+        { class: 'fas fa-book', name: 'Kitap' },
+        { class: 'fas fa-pen', name: 'Kalem' },
+        { class: 'fas fa-clipboard', name: 'Pano' },
+        { class: 'fas fa-folder', name: 'Klasör' },
+        { class: 'fas fa-archive', name: 'Arşiv' },
+        { class: 'fas fa-lock', name: 'Kilit' },
+        { class: 'fas fa-key', name: 'Anahtar' },
+        { class: 'fas fa-certificate', name: 'Sertifika' },
+        { class: 'fas fa-award', name: 'Ödül' },
+        { class: 'fas fa-star', name: 'Yıldız' },
+        { class: 'fas fa-check', name: 'Onay' },
+        { class: 'fas fa-times', name: 'İptal' },
+        { class: 'fas fa-exclamation', name: 'Uyarı' },
+        { class: 'fas fa-info', name: 'Bilgi' },
+        { class: 'fas fa-question', name: 'Soru' },
+        { class: 'fas fa-search', name: 'Arama' },
+        { class: 'fas fa-eye', name: 'Göz' },
+        { class: 'fas fa-phone', name: 'Telefon' },
+        { class: 'fas fa-envelope', name: 'Mektup' },
+        { class: 'fas fa-comments', name: 'Konuşma' },
+        { class: 'fas fa-microphone', name: 'Mikrofon' }
+    ];
+
+    // Select box'ı doldur
+    iconSelect.innerHTML = '<option value="">-- İkon Seçin --</option>';
+    icons.forEach(icon => {
+        const option = document.createElement('option');
+        option.value = icon.class;
+        option.textContent = `${icon.name}`;
+        iconSelect.appendChild(option);
+    });
+
+    // Seçim değiştiğinde preview'ı güncelle
+    iconSelect.addEventListener('change', function () {
+        updateIconPreview(this.value);
+    });
+
+    // İlk yüklemede preview'ı temizle
+    updateIconPreview('');
+}
+
+function updateIconPreview(iconClass) {
+    const iconPreview = document.getElementById('icon-preview');
+
+    if (!iconClass || iconClass === '') {
+        iconPreview.innerHTML = '<span style="color: var(--text-secondary); font-style: italic;">İkon seçilmedi</span>';
+        iconPreview.classList.remove('has-icon');
+        return;
+    }
+
+    // İkon adını bul
+    const iconSelect = document.getElementById('service-icon');
+    const selectedOption = iconSelect.querySelector(`option[value="${iconClass}"]`);
+    const iconName = selectedOption ? selectedOption.textContent : iconClass;
+
+    iconPreview.innerHTML = `
+        <i class="${iconClass}"></i>
+        <div class="icon-name">${iconName}</div>
+    `;
+    iconPreview.classList.add('has-icon');
+}
+
+// === DYNAMIC LISTS MANAGEMENT ===
+function initializeDynamicLists() {
+    // Hizmet alanları listesi
+    const addServiceAreaBtn = document.getElementById('add-service-area');
+    const addSecondItemBtn = document.getElementById('add-second-item');
+
+    if (addServiceAreaBtn) {
+        addServiceAreaBtn.addEventListener('click', () => addServiceArea());
+    }
+
+    if (addSecondItemBtn) {
+        addSecondItemBtn.addEventListener('click', () => addSecondItem());
+    }
+
+    // İlk yüklemede boş listeler göster
+    updateServiceAreasList([]);
+    updateSecondItemsList([]);
+}
+
+function addServiceArea(value = '') {
+    const container = document.getElementById('service-areas-container');
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'dynamic-item';
+
+    itemDiv.innerHTML = `
+        <input type="text" placeholder="Hizmet alanı girin..." value="${value}" required>
+        <button type="button" class="remove-item" onclick="removeItem(this)">×</button>
+    `;
+
+    container.appendChild(itemDiv);
+
+    // Focus yeni eklenen input'a
+    if (!value) {
+        itemDiv.querySelector('input').focus();
+    }
+
+    // Boş mesajını kaldır
+    removeEmptyMessage(container);
+}
+
+function addSecondItem(value = '') {
+    const container = document.getElementById('service-second-items-container');
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'dynamic-item';
+
+    itemDiv.innerHTML = `
+        <input type="text" placeholder="Madde girin..." value="${value}" required>
+        <button type="button" class="remove-item" onclick="removeItem(this)">×</button>
+    `;
+
+    container.appendChild(itemDiv);
+
+    // Focus yeni eklenen input'a
+    if (!value) {
+        itemDiv.querySelector('input').focus();
+    }
+
+    // Boş mesajını kaldır
+    removeEmptyMessage(container);
+}
+
+function removeItem(button) {
+    const item = button.parentElement;
+    const container = item.parentElement;
+    item.remove();
+
+    // Eğer liste boşsa, boş mesajı göster
+    if (container.children.length === 0) {
+        showEmptyMessage(container);
+    }
+}
+
+function updateServiceAreasList(areas) {
+    const container = document.getElementById('service-areas-container');
+    container.innerHTML = '';
+
+    if (areas && areas.length > 0) {
+        areas.forEach(area => addServiceArea(area));
+    } else {
+        showEmptyMessage(container, 'Henüz hizmet alanı eklenmedi');
+    }
+}
+
+function updateSecondItemsList(items) {
+    const container = document.getElementById('service-second-items-container');
+    container.innerHTML = '';
+
+    if (items && items.length > 0) {
+        items.forEach(item => addSecondItem(item));
+    } else {
+        showEmptyMessage(container, 'Henüz madde eklenmedi');
+    }
+}
+
+function showEmptyMessage(container, message = 'Liste boş') {
+    container.innerHTML = `<div class="empty-list">${message}</div>`;
+}
+
+function removeEmptyMessage(container) {
+    const emptyMsg = container.querySelector('.empty-list');
+    if (emptyMsg) {
+        emptyMsg.remove();
+    }
+}
+
+function getServiceAreasFromForm() {
+    const inputs = document.querySelectorAll('#service-areas-container input');
+    return Array.from(inputs).map(input => input.value.trim()).filter(value => value);
+}
+
+function getSecondItemsFromForm() {
+    const inputs = document.querySelectorAll('#service-second-items-container input');
+    return Array.from(inputs).map(input => input.value.trim()).filter(value => value);
+}
 

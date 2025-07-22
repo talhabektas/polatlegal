@@ -656,3 +656,126 @@ td button {
     background: var(--background-secondary) !important;
     font-weight: bold !important;
 }
+
+/* === ICON SELECT === */
+#service-icon {
+    font-family: 'Font Awesome 6 Free', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+    font-weight: 900;
+}
+
+#service-icon option {
+    padding: 12px 16px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#icon-preview {
+    padding: 15px;
+    background: var(--background-secondary);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+    transition: var(--transition-smooth);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#icon-preview.has-icon {
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+#icon-preview i {
+    font-size: 28px;
+    color: var(--primary-color);
+}
+
+#icon-preview .icon-name {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* === DYNAMIC LISTS === */
+.dynamic-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: var(--background-secondary);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.dynamic-item input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 8px;
+    font-size: 14px;
+}
+
+.dynamic-item input:focus {
+    outline: none;
+    background: var(--surface-color);
+    border-radius: 4px;
+}
+
+.remove-item {
+    background: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: var(--transition-fast);
+}
+
+.remove-item:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+.btn-secondary {
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--border-radius-sm);
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    margin-top: 10px;
+}
+
+.btn-secondary:hover {
+    background: #374151;
+}
+
+#service-areas-container,
+#service-second-items-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.empty-list {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 20px;
+}

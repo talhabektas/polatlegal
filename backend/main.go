@@ -24,10 +24,15 @@ import (
 // --- Veritabanı Modelleri ---
 
 type Service struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	IconClass   string `json:"icon_class"`
+	ID                       int    `json:"id"`
+	Title                    string `json:"title"`
+	Description              string `json:"description"`
+	HeroDescription          string `json:"hero_description"`
+	IconClass                string `json:"icon_class"`
+	ServiceAreas             string `json:"service_areas"`
+	SecondSectionTitle       string `json:"second_section_title"`
+	SecondSectionDescription string `json:"second_section_description"`
+	SecondSectionItems       string `json:"second_section_items"`
 }
 
 type TeamMember struct {

@@ -111,13 +111,53 @@
                     <input type="text" id="service-title" required>
                 </div>
                 <div class="form-group">
-                    <label for="service-description">Açıklama</label>
-                    <textarea id="service-description" rows="4" required></textarea>
+                    <label for="service-description">Kısa Açıklama (Kart gösterimi için)</label>
+                    <textarea id="service-description" rows="2" required
+                        placeholder="Örn: Ceza davalarında soruşturma ve kovuşturma aşamalarında hukuki destek sağlıyoruz."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="service-icon">İkon Sınıfı (örn: fas fa-gavel)</label>
-                    <input type="text" id="service-icon" required>
+                    <label for="service-hero-description">Detay Sayfası Ana Açıklaması</label>
+                    <textarea id="service-hero-description" rows="3" required
+                        placeholder="Detay sayfasında gösterilecek uzun açıklama"></textarea>
                 </div>
+                <div class="form-group">
+                    <label for="service-icon">İkon Seç</label>
+                    <select id="service-icon" required>
+                        <option value="">-- İkon Seçin --</option>
+                        <!-- JavaScript ile doldurulacak -->
+                    </select>
+                    <div id="icon-preview" style="margin-top: 10px; font-size: 24px; color: var(--primary-color);">
+                    </div>
+                </div>
+
+                <!-- Hizmet Alanları -->
+                <div class="form-group">
+                    <label>Hizmet Verdiğimiz Alanlar</label>
+                    <div id="service-areas-container">
+                        <!-- JavaScript ile doldurulacak -->
+                    </div>
+                    <button type="button" id="add-service-area" class="btn btn-secondary">+ Yeni Alan Ekle</button>
+                </div>
+
+                <!-- İkinci Bölüm -->
+                <div class="form-group">
+                    <label for="service-second-title">İkinci Bölüm Başlığı</label>
+                    <input type="text" id="service-second-title"
+                        placeholder="Örn: Sürecimiz, Yaklaşımımız, Sunduğumuz Hizmetler">
+                </div>
+                <div class="form-group">
+                    <label for="service-second-description">İkinci Bölüm Açıklaması</label>
+                    <textarea id="service-second-description" rows="2"
+                        placeholder="İkinci bölüm için açıklama metni"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>İkinci Bölüm Maddeleri</label>
+                    <div id="service-second-items-container">
+                        <!-- JavaScript ile doldurulacak -->
+                    </div>
+                    <button type="button" id="add-second-item" class="btn btn-secondary">+ Yeni Madde Ekle</button>
+                </div>
+
                 <button type="submit" class="btn btn-primary">Kaydet</button>
             </form>
         </div>
