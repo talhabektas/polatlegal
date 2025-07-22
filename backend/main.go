@@ -88,36 +88,6 @@ func initDB() {
 	}
 
 	log.Println("Veritabanı bağlantısı başarılı!")
-
-	// Ekip üyelerinin fotoğraflarını güncelle
-	updateTeamPhotos()
-}
-
-func updateTeamPhotos() {
-	// Çağrı Polat'ın fotoğrafını güncelle
-	_, err := db.Exec("UPDATE team_members SET name = 'Av. Çağrı Polat', image_url = 'assets/av-s-cagri-polat-1704710940-684_small.jpg' WHERE id = 1")
-	if err != nil {
-		log.Printf("Çağrı Polat fotoğrafı güncellenirken hata: %v", err)
-	}
-
-	// Ertuğrul Polat'ın fotoğrafını güncelle
-	_, err = db.Exec("UPDATE team_members SET name = 'Av. Ertuğrul Polat', image_url = 'assets/ert.jpg' WHERE id = 2")
-	if err != nil {
-		log.Printf("Ertuğrul Polat fotoğrafı güncellenirken hata: %v", err)
-	}
-
-	// Blog yazılarındaki yazar isimlerini güncelle
-	_, err = db.Exec("UPDATE posts SET author_name = 'Çağrı Polat' WHERE author_id = 1")
-	if err != nil {
-		log.Printf("Çağrı Polat blog yazıları güncellenirken hata: %v", err)
-	}
-
-	_, err = db.Exec("UPDATE posts SET author_name = 'Ertuğrul Polat' WHERE author_id = 2")
-	if err != nil {
-		log.Printf("Ertuğrul Polat blog yazıları güncellenirken hata: %v", err)
-	}
-
-	log.Println("Ekip üyeleri fotoğrafları güncellendi!")
 }
 
 // --- JWT Ayarları ---
