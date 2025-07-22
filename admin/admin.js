@@ -190,8 +190,18 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchProtectedData(endpoint) {
         const token = localStorage.getItem('authToken');
         try {
-            const res = await fetch(`/api/admin/${endpoint}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+            // Cache bypass için timestamp ekliyoruz
+            const timestamp = new Date().getTime();
+            const url = `/api/admin/${endpoint}?_t=${timestamp}`;
+
+            const res = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
             });
 
             if (res.status === 401) {

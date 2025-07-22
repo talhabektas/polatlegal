@@ -598,24 +598,57 @@ func createTeamMemberHandler(w http.ResponseWriter, r *http.Request) {
 func updateTeamMemberHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
+
+	fmt.Printf("=== TEAM UPDATE DEBUG ===\n")
+	fmt.Printf("Team ID to update: %s\n", id)
+
 	var t TeamMember
 	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
+		fmt.Printf("JSON decode error: %v\n", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	fmt.Printf("Received data: Name=%s, Title=%s, Bio=%s, ImageURL=%s\n",
+		t.Name, t.Title, t.Bio, t.ImageURL)
+
 	query := "UPDATE team_members SET name=?, title=?, bio=?, image_url=? WHERE id=?"
-	_, err := db.Exec(query, t.Name, t.Title, t.Bio, t.ImageURL, id)
+	result, err := db.Exec(query, t.Name, t.Title, t.Bio, t.ImageURL, id)
 	if err != nil {
+		fmt.Printf("Database update error: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Güncellenmiş veriyi geri döndür
-	idInt, _ := strconv.Atoi(id)
-	t.ID = idInt
+	// Etkilenen satır sayısını kontrol et
+	rowsAffected, _ := result.RowsAffected()
+	fmt.Printf("Rows affected by update: %d\n", rowsAffected)
+
+	if rowsAffected == 0 {
+		fmt.Printf("WARNING: No rows were updated! Team member with ID %s might not exist.\n", id)
+	}
+
+	// Güncellenmiş veriyi database'den tekrar oku
+	var updatedTeam TeamMember
+	err = db.QueryRow("SELECT id, name, title, bio, image_url FROM team_members WHERE id=?", id).
+		Scan(&updatedTeam.ID, &updatedTeam.Name, &updatedTeam.Title, &updatedTeam.Bio, &updatedTeam.ImageURL)
+
+	if err != nil {
+		fmt.Printf("Error reading updated data: %v\n", err)
+		// Fallback: manuel olarak veriyi set et
+		idInt, _ := strconv.Atoi(id)
+		t.ID = idInt
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(t)
+		return
+	}
+
+	fmt.Printf("Updated data from DB: ID=%d, Name=%s, Title=%s, Bio=%s, ImageURL=%s\n",
+		updatedTeam.ID, updatedTeam.Name, updatedTeam.Title, updatedTeam.Bio, updatedTeam.ImageURL)
+	fmt.Printf("=== END TEAM UPDATE DEBUG ===\n")
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(t)
+	json.NewEncoder(w).Encode(updatedTeam)
 }
 
 // Ekip Üyesi Sil (DELETE /api/admin/team/{id})
