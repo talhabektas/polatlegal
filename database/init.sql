@@ -67,6 +67,6 @@ INSERT INTO posts (title, content, author_name, author_id, service_id) VALUES
 ('Şirket Birleşme ve Devralmalarında Dikkat Edilmesi Gerekenler', 'Birleşme ve devralma süreçleri, hukuki, finansal ve operasyonel birçok detayı içerir. Doğru bir hukuki danışmanlık, sürecin pürüzsüz ilerlemesi için kritik öneme sahiptir.', 'Çağrı Polat', 2, 2),
 ('Miras Paylaşımında Sıkça Yapılan Hatalar', 'Miras hukuku, hassas ve karmaşık bir alandır. Vasiyetnamenin doğru hazırlanmaması veya saklı payların ihlal edilmesi gibi hatalar, uzun süren davalara yol açabilir.', 'Ertuğrul Polat', 1, 1);
 
--- Admin Kullanıcısı (Şifre: 'admin123' - gerçek uygulamada hash'lenmeli)
+-- Admin Kullanıcısı (Şifre: 'AdminPolat2024!Legal@Strong#Password$9876')
 INSERT INTO admins (username, password_hash) VALUES
-('admin', 'admin123'); -- Geliştirme için düz metin şifre. Üretimde KESİNLİKLE Bcrypt hash'i kullanın!
+('admin', 'AdminPolat2024!Legal@Strong#Password$9876'); -- Production'da bcrypt hash kullanılacak

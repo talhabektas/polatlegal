@@ -463,16 +463,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize toast manager
     const toast = new ToastManager();
 
-    // Initialize UI enhancements - scroll effects only on homepage
-    const isHomepage = window.location.pathname === '/' ||
-        window.location.pathname === '/index.html' ||
-        window.location.pathname.endsWith('/index.html') ||
-        window.location.pathname === '/c:/Users/Pc/Desktop/polatlar/frontend/index.html';
-
-    if (isHomepage) {
-        initScrollEffects();
-    }
-
+    // Initialize UI enhancements - scroll effects artık tüm sayfalarda
+    initScrollEffects();
     initMobileNavigation();
 
     // Page-specific initializations
@@ -534,9 +526,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Show welcome message only on homepage
+    const isHomepage = window.location.pathname === '/' ||
+        window.location.pathname === '/index.html' ||
+        window.location.pathname.endsWith('/index.html') ||
+        window.location.pathname === '/c:/Users/Pc/Desktop/polatlar/frontend/index.html';
+
     if (isHomepage) {
         setTimeout(() => {
-            toast.show('Hoş Geldiniz', 'Polatlar Hukuk Bürosu\'na hoş geldiniz!', 'info', 4000);
+            toast.show('Hoş Geldiniz', 'Polat Legal\'e hoş geldiniz!', 'info', 4000);
         }, 1000);
     }
 });
@@ -851,32 +848,88 @@ function handleHashChange() {
     }
 }
 
-function showServiceDetail(serviceId) {
-    const serviceDetail = serviceDetails[serviceId];
+async function showServiceDetail(serviceId) {
+    try {
+        const response = await fetch(`http://localhost:8061/api/services/${serviceId}`);
+        if (!response.ok) {
+            throw new Error('Service not found');
+        }
 
-    if (!serviceDetail) {
-        ToastManager.error('Hizmet bulunamadı.');
+        const service = await response.json();
+
+        // Parse JSON fields safely
+        let serviceAreas = [];
+        let secondSectionItems = [];
+
+        try {
+            serviceAreas = service.service_areas ? JSON.parse(service.service_areas) : [];
+        } catch (e) {
+            serviceAreas = [];
+        }
+
+        try {
+            secondSectionItems = service.second_section_items ? JSON.parse(service.second_section_items) : [];
+        } catch (e) {
+            secondSectionItems = [];
+        }
+
+        // Build service areas HTML
+        const serviceAreasHtml = serviceAreas.length > 0 ? `
+            <h3>Hizmet Verdiğimiz Alanlar</h3>
+            <ul>
+                ${serviceAreas.map(area => `<li>${area}</li>`).join('')}
+            </ul>
+        ` : '';
+
+        // Build second section HTML
+        const secondSectionHtml = (service.second_section_title && secondSectionItems.length > 0) ? `
+            <h3>${service.second_section_title}</h3>
+            ${service.second_section_description ? `<p>${service.second_section_description}</p>` : ''}
+            <ul>
+                ${secondSectionItems.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+        ` : '';
+
+        // Build complete content
+        const content = `
+            <h2>${service.title}</h2>
+            <p>${service.hero_description || service.description}</p>
+            
+            ${serviceAreasHtml}
+            ${secondSectionHtml}
+            
+            <div class="service-contact">
+                <h3>Bu Konuda Hukuki Desteğe İhtiyacınız Var mı?</h3>
+                <p>Uzman avukatlarımızla hemen iletişime geçin.</p>
+                <a href="iletisim.html" class="btn">
+                    <i class="fas fa-phone"></i> İletişime Geçin
+                </a>
+            </div>
+        `;
+
+        // Detay bilgilerini güncelle
+        document.getElementById('detail-icon').className = service.icon_class;
+        document.getElementById('detail-title').textContent = service.title;
+        document.getElementById('detail-description').textContent = service.description;
+        document.getElementById('detail-content').innerHTML = content;
+
+        // Görünümleri değiştir
+        document.getElementById('services-list').style.display = 'none';
+        document.getElementById('service-detail').style.display = 'block';
+
+        // Sayfayı başa kaydır
+        window.scrollTo({ top: 0, behavior: 'auto' });
+
+        // Scroll animasyonları için
+        setTimeout(() => {
+            initializeScrollAnimations(new IntersectionObserver(() => { }, {}));
+        }, 100);
+
+    } catch (error) {
+        console.error('Error fetching service:', error);
+        console.log('Hizmet bulunamadı.');
         showServicesList();
-        return;
     }
-
-    // Detay bilgilerini güncelle
-    document.getElementById('detail-icon').className = serviceDetail.icon;
-    document.getElementById('detail-title').textContent = serviceDetail.title;
-    document.getElementById('detail-description').textContent = serviceDetail.description;
-    document.getElementById('detail-content').innerHTML = serviceDetail.content;
-
-    // Görünümleri değiştir
-    document.getElementById('services-list').style.display = 'none';
-    document.getElementById('service-detail').style.display = 'block';
-
-    // Sayfayı başa kaydır
-    window.scrollTo({ top: 0, behavior: 'auto' });
-
-    // Scroll animasyonları için
-    setTimeout(() => {
-        initializeScrollAnimations(new IntersectionObserver(() => { }, {}));
-    }, 100);
 }
 
 function showServicesList() {

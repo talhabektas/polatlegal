@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # MySQL Veritabanı
+  mysql:
+    image: mysql:8.0
+    container_name: polatlegal-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 61611616
+      MYSQL_DATABASE: polats
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 61611616
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - polatlegal-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Go Backend
+  backend:
+    build: .
+    container_name: polatlegal-backend
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: 61611616
+      DB_NAME: polats
+      JWT_SECRET: PolAtLegal2024!JWT$Secret#Talha@Bektas*VerySecure%Key9876
+      GMAIL_EMAIL: polatlegal.noreply@gmail.com
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
+      SEND_TO_EMAIL: avcagripolat@hotmail.com
+      PORT: 8061
+    networks:
+      - polatlegal-network
+    ports:
+      - "8061:8061"
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: polatlegal-nginx
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./frontend:/var/www/html
+      - ./admin:/var/www/admin
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/sites:/etc/nginx/conf.d
+      - ./ssl:/etc/nginx/ssl
+    networks:
+      - polatlegal-network
+
+networks:
+  polatlegal-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local 

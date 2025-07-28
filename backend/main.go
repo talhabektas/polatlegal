@@ -19,6 +19,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // --- Veritabanı Modelleri ---
@@ -75,13 +76,50 @@ type ContactForm struct {
 	Message string `json:"message"`
 }
 
+// --- Bcrypt Helper Functions ---
+
+// Şifre hash'leme fonksiyonu
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+// Şifre doğrulama fonksiyonu
+func checkPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
 // --- Veritabanı Bağlantısı ---
 var db *sql.DB
 
 func initDB() {
 	var err error
-	// DSN (Data Source Name) formatı: username:password@tcp(127.0.0.1:3306)/database_name
-	dsn := "root:61611616@tcp(127.0.0.1:3306)/polats?parseTime=true"
+
+	// Environment'tan değerleri al
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "127.0.0.1" // fallback
+	}
+
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "root"
+	}
+
+	dbPassword := os.Getenv("DB_PASSWORD")
+	if dbPassword == "" {
+		dbPassword = "61611616"
+	}
+
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "polats"
+	}
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true",
+		dbUser, dbPassword, dbHost, dbName)
+
 	db, err = sql.Open("mysql", dsn)
 	if err != nil {
 		log.Fatalf("Veritabanı bağlantısı açılamadı: %v", err)
@@ -96,7 +134,15 @@ func initDB() {
 }
 
 // --- JWT Ayarları ---
-var jwtKey = []byte("my_secret_key") // Üretimde bunu güvenli bir yerden alın!
+var jwtKey []byte
+
+func initJWT() {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "PolAtLegal2024!JWT$Secret#Talha@Bektas*VerySecure%Key9876" // fallback
+	}
+	jwtKey = []byte(secret)
+}
 
 // --- Email Gönderimi ---
 func sendEmail(to, subject, body string) error {
@@ -185,7 +231,14 @@ func sendEmail(to, subject, body string) error {
 // --- API Handler'ları ---
 
 func getServices(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title, description, icon_class FROM services")
+	rows, err := db.Query(`SELECT id, title, description, 
+		COALESCE(hero_description, description) as hero_description, 
+		icon_class,
+		COALESCE(service_areas, '[]') as service_areas,
+		COALESCE(second_section_title, '') as second_section_title,
+		COALESCE(second_section_description, '') as second_section_description,
+		COALESCE(second_section_items, '[]') as second_section_items
+		FROM services`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -195,7 +248,8 @@ func getServices(w http.ResponseWriter, r *http.Request) {
 	services := []Service{}
 	for rows.Next() {
 		var s Service
-		if err := rows.Scan(&s.ID, &s.Title, &s.Description, &s.IconClass); err != nil {
+		if err := rows.Scan(&s.ID, &s.Title, &s.Description, &s.HeroDescription, &s.IconClass,
+			&s.ServiceAreas, &s.SecondSectionTitle, &s.SecondSectionDescription, &s.SecondSectionItems); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -203,6 +257,35 @@ func getServices(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(services)
+}
+
+func getService(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var s Service
+	err := db.QueryRow(`SELECT id, title, description, 
+		COALESCE(hero_description, description) as hero_description, 
+		icon_class,
+		COALESCE(service_areas, '[]') as service_areas,
+		COALESCE(second_section_title, '') as second_section_title,
+		COALESCE(second_section_description, '') as second_section_description,
+		COALESCE(second_section_items, '[]') as second_section_items
+		FROM services WHERE id = ?`, id).Scan(
+		&s.ID, &s.Title, &s.Description, &s.HeroDescription, &s.IconClass,
+		&s.ServiceAreas, &s.SecondSectionTitle, &s.SecondSectionDescription, &s.SecondSectionItems)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Service not found", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(s)
 }
 
 func getTeamMembers(w http.ResponseWriter, r *http.Request) {
@@ -420,14 +503,27 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// HATA AYIKLAMA: Gelen ve veritabanındaki şifreleri terminale yazdır.
-	log.Printf("Gelen Şifre: '%s'", details.Password)
-	log.Printf("DB'deki Şifre: '%s'", storedPassword)
+	// HATA AYIKLAMA: Gelen şifreyi terminale yazdır.
+	log.Printf("Gelen Şifre uzunluğu: %d karakter", len(details.Password))
+	log.Printf("DB'deki hash başlangıcı: %.20s...", storedPassword)
 
-	// Düz metin şifre karşılaştırması (SADECE GELİŞTİRME İÇİN!)
-	if details.Password != storedPassword {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
+	// Hash'li şifre varsa bcrypt kontrolü, yoksa düz metin
+	if strings.HasPrefix(storedPassword, "$2a$") || strings.HasPrefix(storedPassword, "$2b$") {
+		// Bcrypt hash kontrolü
+		if !checkPasswordHash(details.Password, storedPassword) {
+			log.Println("Bcrypt şifre kontrolü başarısız")
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		log.Println("Bcrypt şifre kontrolü başarılı")
+	} else {
+		// Düz metin karşılaştırması (geçici uyumluluk için)
+		if details.Password != storedPassword {
+			log.Println("Düz metin şifre kontrolü başarısız")
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		log.Println("Düz metin şifre kontrolü başarılı")
 	}
 
 	expirationTime := time.Now().Add(24 * time.Hour)
@@ -498,8 +594,11 @@ func createServiceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := "INSERT INTO services (title, description, icon_class) VALUES (?, ?, ?)"
-	res, err := db.Exec(query, s.Title, s.Description, s.IconClass)
+	query := `INSERT INTO services (title, description, hero_description, icon_class, 
+		service_areas, second_section_title, second_section_description, second_section_items) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+	res, err := db.Exec(query, s.Title, s.Description, s.HeroDescription, s.IconClass,
+		s.ServiceAreas, s.SecondSectionTitle, s.SecondSectionDescription, s.SecondSectionItems)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -521,8 +620,11 @@ func updateServiceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := "UPDATE services SET title=?, description=?, icon_class=? WHERE id=?"
-	_, err := db.Exec(query, s.Title, s.Description, s.IconClass, id)
+	query := `UPDATE services SET title=?, description=?, hero_description=?, icon_class=?,
+		service_areas=?, second_section_title=?, second_section_description=?, second_section_items=? 
+		WHERE id=?`
+	_, err := db.Exec(query, s.Title, s.Description, s.HeroDescription, s.IconClass,
+		s.ServiceAreas, s.SecondSectionTitle, s.SecondSectionDescription, s.SecondSectionItems, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -845,6 +947,9 @@ func uploadFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// JWT'yi başlat
+	initJWT()
+
 	// Veritabanını başlat
 	initDB()
 	defer db.Close()
@@ -855,6 +960,7 @@ func main() {
 	// API Rotaları
 	apiPublic := r.PathPrefix("/api").Subrouter()
 	apiPublic.HandleFunc("/services", getServices).Methods("GET")
+	apiPublic.HandleFunc("/services/{id}", getService).Methods("GET")
 	apiPublic.HandleFunc("/team", getTeamMembers).Methods("GET")
 	apiPublic.HandleFunc("/posts/{id}", getPost).Methods("GET")
 	apiPublic.HandleFunc("/posts", getPosts).Methods("GET")
