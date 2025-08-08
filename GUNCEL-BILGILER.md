@@ -68,7 +68,7 @@ backend:
 
 ```env
 JWT_SECRET=PolAtLegal2024!JWT$Secret#Talha@Bektas*VerySecure%Key9876
-GMAIL_APP_PASSWORD=16_haneli_gmail_app_password_buraya
+GMAIL_APP_PASSWORD=exgu ojtb byuc fhls
 ADMIN_PASSWORD=AdminPolat2024!Legal@Strong#Password$9876
 ```
 

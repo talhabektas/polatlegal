@@ -1,4 +1,4 @@
-version: '3.8'
+# Docker Compose for Polat Legal
 
 services:
   # MySQL Veritabanı
@@ -9,14 +9,19 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 61611616
       MYSQL_DATABASE: polats
-      MYSQL_USER: root
-      MYSQL_PASSWORD: 61611616
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - polatlegal-network
-    command: --default-authentication-plugin=mysql_native_password
+    command: 
+      - --default-authentication-plugin=mysql_native_password 
+      - --character-set-server=utf8mb4 
+      - --collation-server=utf8mb4_unicode_ci
+      - --init-connect=SET NAMES utf8mb4
+      - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO
 
   # Go Backend
   backend:
@@ -36,6 +41,9 @@ services:
       GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
       SEND_TO_EMAIL: avcagripolat@hotmail.com
       PORT: 8061
+      DOCKER_ENV: "true"
+    volumes:
+      - ./frontend/assets:/var/www/html/assets
     networks:
       - polatlegal-network
     ports:

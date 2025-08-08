@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8061/api';
+const API_BASE_URL = '/api';
 
 // === TOAST NOTIFICATION SYSTEM ===
 class ToastManager {

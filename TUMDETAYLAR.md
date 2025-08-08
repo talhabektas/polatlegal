@@ -530,11 +530,34 @@ nano /etc/nginx/sites-available/polatlegal.com
 **Admin location'ında şunu değiştirin:**
 ```nginx
 location /admin/ {
-    # ...
-    allow 127.0.0.1;
-    allow SENIN_IP_ADRESIN;  # Örn: allow 78.189.123.45;
-    deny all;
-    # ...
+    # IP kısıtlaması - multiple network aralığı (Dynamic IP çözümü)
+    allow 127.0.0.1;          # Localhost
+    allow 192.168.1.0/24;     # Yaygın home router aralığı
+    allow 192.168.0.0/24;     # Alternatif home router aralığı
+    allow 10.0.0.0/24;        # Alternatif aralık
+    allow 172.16.0.0/12;      # Kurumsal/ISP aralığı (172.16.0.0 - 172.31.255.255)
+    deny all;                 # Diğer tüm IP'leri reddet
+    
+    root /var/www;
+    index index.html;
+    try_files $uri $uri/ /admin/index.html;
+}
+
+# Admin API rotalarını da kısıtla
+location /api/admin/ {
+    # IP kısıtlaması - multiple network aralığı (Dynamic IP çözümü)
+    allow 127.0.0.1;          # Localhost
+    allow 192.168.1.0/24;     # Yaygın home router aralığı
+    allow 192.168.0.0/24;     # Alternatif home router aralığı
+    allow 10.0.0.0/24;        # Alternatif aralık
+    allow 172.16.0.0/12;      # Kurumsal/ISP aralığı (172.16.0.0 - 172.31.255.255)
+    deny all;                 # Diğer tüm IP'leri reddet
+    
+    proxy_pass http://localhost:8061;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
 }
 ```
 

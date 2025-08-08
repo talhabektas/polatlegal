@@ -259,19 +259,35 @@ function createPostCard(post) {
 }
 
 function createTeamCard(member) {
+    // İngilizce çeviriler
+    const englishContent = {
+        'Av. Salih Çağrı Polat': {
+            name: 'Lawyer Salih Çağrı Polat',
+            title: 'Founding Lawyer',
+            bio: 'Lawyer Salih Çağrı POLAT, a graduate of Istanbul University Faculty of Law, takes an active role in various civil society organizations, writes opinion pieces and news for local press and news channels, and shares with the public by writing corner articles. With the mission of making the complex language of law understandable, Lawyer Salih Çağrı POLAT continues his work aimed at increasing legal awareness.'
+        }
+    };
+
+    // Çeviri varsa kullan, yoksa orijinali kullan
+    const content = englishContent[member.name] || {
+        name: member.name,
+        title: member.title,
+        bio: member.bio
+    };
+
     const card = document.createElement('div');
     card.className = 'team-card';
     card.innerHTML = `
-        <img src="${member.image_url}" alt="${member.name}" class="team-card-img" 
+        <img src="${member.image_url}" alt="${content.name}" class="team-card-img" 
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <div style="display:none; height: 300px; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); 
                     align-items: center; justify-content: center; color: #475569; font-weight: 500;">
             <i class="fas fa-user" style="font-size: 3rem; opacity: 0.5;"></i>
         </div>
         <div class="team-card-info">
-            <h3>${member.name}</h3>
-            <p class="team-card-title">${member.title}</p>
-            <p class="team-card-bio">${member.bio}</p>
+            <h3>${content.name}</h3>
+            <p class="team-card-title">${content.title}</p>
+            <p class="team-card-bio">${content.bio}</p>
         </div>
     `;
     return card;

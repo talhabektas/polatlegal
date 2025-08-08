@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const postModal = document.getElementById('post-modal');
     const postForm = document.getElementById('post-form');
 
-    const API_URL = 'http://localhost:8061/api/admin';
+    const API_URL = '/api/admin';
 
     // === AUTH & NAVIGATION ===
     function checkAuth() {

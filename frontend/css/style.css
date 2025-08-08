@@ -1494,9 +1494,10 @@ p {
 }
 
 .service-detail-body h3 {
-    color: var(--primary-color);
+    color: #2c2c2c;
     margin: 2rem 0 1rem 0;
     font-size: 1.5rem;
+    font-weight: 700;
 }
 
 .service-detail-body ul {

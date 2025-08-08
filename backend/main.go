@@ -117,7 +117,7 @@ func initDB() {
 		dbName = "polats"
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true&charset=utf8mb4&collation=utf8mb4_unicode_ci",
 		dbUser, dbPassword, dbHost, dbName)
 
 	db, err = sql.Open("mysql", dsn)
@@ -907,23 +907,35 @@ func uploadFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Docker container'ında doğru yolu kullan
+	var assetsDir string
+	if os.Getenv("DOCKER_ENV") != "" {
+		// Docker container içinde
+		assetsDir = "/var/www/html/assets"
+	} else {
+		// Local development
+		assetsDir = "../frontend/assets"
+	}
+
 	// Assets klasörünün var olduğundan emin ol
-	assetsDir := "../frontend/assets"
 	if _, err := os.Stat(assetsDir); os.IsNotExist(err) {
 		err := os.MkdirAll(assetsDir, 0755)
 		if err != nil {
+			log.Printf("Assets klasörü oluşturulamadı: %v", err)
 			http.Error(w, "Assets klasörü oluşturulamadı", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	// Dosya yolu oluştur
-	fileName := handler.Filename
+	// Benzersiz dosya adı oluştur (aynı isimli dosyaların üzerine yazmasın)
+	timestamp := time.Now().Unix()
+	fileName := fmt.Sprintf("%d_%s", timestamp, handler.Filename)
 	filePath := filepath.Join(assetsDir, fileName)
 
 	// Dosyayı kaydet
 	dst, err := os.Create(filePath)
 	if err != nil {
+		log.Printf("Dosya oluşturulamadı: %v", err)
 		http.Error(w, "Dosya oluşturulamadı", http.StatusInternalServerError)
 		return
 	}
@@ -931,9 +943,12 @@ func uploadFileHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = io.Copy(dst, file)
 	if err != nil {
+		log.Printf("Dosya kopyalanamadı: %v", err)
 		http.Error(w, "Dosya kopyalanamadı", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("Dosya başarıyla yüklendi: %s", fileName)
 
 	// Başarılı response
 	response := map[string]string{
@@ -956,6 +971,22 @@ func main() {
 
 	// Router'ı oluştur
 	r := mux.NewRouter()
+
+	// CORS Middleware ekle
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	// API Rotaları
 	apiPublic := r.PathPrefix("/api").Subrouter()
