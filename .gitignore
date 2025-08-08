@@ -10,3 +10,12 @@
 .env.test
 .env.production 
 docker-compose.yml
+
+# Hassas bilgileri içeren MD dosyaları
+bilgilendirme.md
+CANLI-YAYINA-ALMA-REHBERI.md
+DOCKER-DEPLOYMENT.md
+GUNCEL-BILGILER.md
+JWT-ADMIN-GUVENLIK.md
+README.md
+TUMDETAYLAR.md
