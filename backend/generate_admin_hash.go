@@ -7,9 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Bu dosya sadece admin hash'i oluşturmak için kullanılır
-// Kullanım: go run create_admin_hash.go
-func createHash() {
+func main() {
 	password := "AdminPolat2024!Legal@Strong#Password$9876"
 
 	// Bcrypt hash oluştur
@@ -33,8 +31,4 @@ func createHash() {
 	fmt.Println()
 	fmt.Println("SQL Komutu:")
 	fmt.Printf("UPDATE admins SET password_hash = '%s' WHERE username = 'admin';\n", string(hash))
-}
-
-func main() {
-	createHash()
 }
