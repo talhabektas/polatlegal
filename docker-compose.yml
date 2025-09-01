@@ -1,77 +1,86 @@
-# Docker Compose for Polat Legal
+version: '3.8'
 
 services:
   # MySQL Veritabanı
   mysql:
     image: mysql:8.0
-    container_name: polatlegal-mysql
-    restart: always
+    container_name: polatlegal_mysql
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: 61611616
       MYSQL_DATABASE: polats
-      MYSQL_CHARSET: utf8mb4
-      MYSQL_COLLATION: utf8mb4_unicode_ci
+      MYSQL_USER: polat_user
+      MYSQL_PASSWORD: 61611616
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3307:3306"
     networks:
-      - polatlegal-network
-    command: 
-      - --default-authentication-plugin=mysql_native_password 
-      - --character-set-server=utf8mb4 
-      - --collation-server=utf8mb4_unicode_ci
-      - --init-connect=SET NAMES utf8mb4
-      - --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO
+      - polatlegal_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p61611616"]
+      timeout: 20s
+      retries: 10
 
-  # Go Backend
+  # Go Backend API
   backend:
-    build: .
-    container_name: polatlegal-backend
-    restart: always
-    depends_on:
-      - mysql
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    container_name: polatlegal_backend
+    restart: unless-stopped
     environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_USER: root
-      DB_PASSWORD: 61611616
-      DB_NAME: polats
-      JWT_SECRET: PolAtLegal2024!JWT$Secret#Talha@Bektas*VerySecure%Key9876
-      GMAIL_EMAIL: polatlegal.noreply@gmail.com
-      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
-      SEND_TO_EMAIL: avcagripolat@hotmail.com
-      PORT: 8061
-      DOCKER_ENV: "true"
-    volumes:
-      - ./frontend/assets:/var/www/html/assets
-    networks:
-      - polatlegal-network
+      - DB_HOST=mysql
+      - DB_NAME=polats
+      - DB_USER=root
+      - DB_PASSWORD=61611616
+      - JWT_SECRET=PolAtLegal2024!JWT$Secret#Talha@Bektas*VerySecure%Key9876
+      - DOCKER_ENV=true
     ports:
       - "8061:8061"
-
-  # Nginx Web Server
-  nginx:
-    image: nginx:alpine
-    container_name: polatlegal-nginx
-    restart: always
     depends_on:
-      - backend
+      mysql:
+        condition: service_healthy
+    networks:
+      - polatlegal_network
+    volumes:
+      - uploaded_files:/var/www/html/assets
+
+  # Nginx Frontend ve Reverse Proxy
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile  
+      target: frontend
+    container_name: polatlegal_frontend
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./frontend:/var/www/html
-      - ./admin:/var/www/admin
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/sites:/etc/nginx/conf.d
-      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
     networks:
-      - polatlegal-network
+      - polatlegal_network
+    volumes:
+      - uploaded_files:/var/www/html/assets
+      - ./ssl:/etc/nginx/ssl
+    command: >
+      sh -c "
+        # SSL sertifikası yoksa HTTP olarak başlat
+        if [ ! -f /etc/nginx/ssl/cert.pem ]; then
+          echo 'SSL sertifikası bulunamadı, HTTP modunda başlatılıyor...'
+        fi
+        nginx -g 'daemon off;'
+      "
 
 networks:
-  polatlegal-network:
+  polatlegal_network:
     driver: bridge
 
 volumes:
   mysql_data:
-    driver: local 
+    driver: local
+  uploaded_files:
+    driver: local

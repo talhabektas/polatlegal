@@ -73,4 +73,4 @@ INSERT INTO posts (title, content, author_name, author_id, service_id) VALUES
 
 -- Admin Kullanıcısı (Şifre: 'AdminPolat2024!Legal@Strong#Password$9876')
 INSERT INTO admins (username, password_hash) VALUES
-('admin', 'AdminPolat2024!Legal@Strong#Password$9876'); -- Production'da bcrypt hash kullanılacak
+('admin', '$2a$14$9YzGupf5wsaJvasTNR09fumzl7/XACx1JFp3JAjG8Ud2tskSFAk9u'); -- Bcrypt hash of AdminPolat2024!Legal@Strong#Password$9876

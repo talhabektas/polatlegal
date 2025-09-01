@@ -1,56 +1,63 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="tr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yönetim Paneli - Polatlar Hukuk</title>
+    <title>YÃ¶netim Paneli - Polatlar Hukuk</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="../frontend/assets/favicon.jpg">
+    <link rel="shortcut icon" type="image/jpeg" href="../frontend/assets/favicon.jpg">
+
+
+
     <link rel="stylesheet" href="admin.css">
-    <!-- CKEditor 5 Rich Text Editor - Basit Sürüm -->
+    <!-- CKEditor 5 Rich Text Editor - Basit SÃ¼rÃ¼m -->
     <script src="https://cdn.ckeditor.com/ckeditor5/40.1.0/classic/ckeditor.js"></script>
 </head>
 
 <body>
 
     <div id="login-container" class="container active">
-        <h1>Yönetici Girişi</h1>
+        <h1>YÃ¶netici GiriÅŸi</h1>
         <form id="login-form">
             <div class="form-group">
-                <label for="username">Kullanıcı Adı</label>
+                <label for="username">KullanÄ±cÄ± AdÄ±</label>
                 <input type="text" id="username" required>
             </div>
             <div class="form-group">
-                <label for="password">Şifre</label>
+                <label for="password">Åifre</label>
                 <input type="password" id="password" required>
             </div>
-            <button type="submit" class="btn">Giriş Yap</button>
+            <button type="submit" class="btn">GiriÅŸ Yap</button>
         </form>
         <p id="login-error" class="error-message"></p>
     </div>
 
     <div id="admin-panel-container" class="container">
         <header>
-            <h1>İçerik Yönetim Paneli</h1>
-            <button id="logout-btn" class="btn btn-danger">Çıkış Yap</button>
+            <h1>Ä°Ã§erik YÃ¶netim Paneli</h1>
+            <button id="logout-btn" class="btn btn-danger">Ã‡Ä±kÄ±ÅŸ Yap</button>
         </header>
 
         <nav class="admin-nav">
-            <button data-target="services-management" class="active">Çalışma Alanları</button>
-            <button data-target="team-management">Ekip Üyeleri</button>
-            <button data-target="posts-management">Blog Yazıları</button>
+            <button data-target="services-management" class="active">Ã‡alÄ±ÅŸma AlanlarÄ±</button>
+            <button data-target="team-management">Ekip Ãœyeleri</button>
+            <button data-target="posts-management">Blog YazÄ±larÄ±</button>
         </nav>
 
         <main id="management-sections">
-            <!-- Hizmetler Yönetimi -->
+            <!-- Hizmetler YÃ¶netimi -->
             <section id="services-management" class="management-section active">
-                <h2>Çalışma Alanları Yönetimi</h2>
+                <h2>Ã‡alÄ±ÅŸma AlanlarÄ± YÃ¶netimi</h2>
                 <button class="btn btn-primary">Yeni Hizmet Ekle</button>
                 <table>
                     <thead>
                         <tr>
-                            <th>Başlık</th>
-                            <th>İkon Sınıfı</th>
-                            <th>İşlemler</th>
+                            <th>BaÅŸlÄ±k</th>
+                            <th>Ä°kon SÄ±nÄ±fÄ±</th>
+                            <th>Ä°ÅŸlemler</th>
                         </tr>
                     </thead>
                     <tbody id="services-table-body">
@@ -59,16 +66,16 @@
                 </table>
             </section>
 
-            <!-- Ekip Yönetimi -->
+            <!-- Ekip YÃ¶netimi -->
             <section id="team-management" class="management-section">
-                <h2>Ekip Üyeleri Yönetimi</h2>
-                <button class="btn btn-primary">Yeni Üye Ekle</button>
+                <h2>Ekip Ãœyeleri YÃ¶netimi</h2>
+                <button class="btn btn-primary">Yeni Ãœye Ekle</button>
                 <table>
                     <thead>
                         <tr>
-                            <th>İsim</th>
+                            <th>Ä°sim</th>
                             <th>Unvan</th>
-                            <th>İşlemler</th>
+                            <th>Ä°ÅŸlemler</th>
                         </tr>
                     </thead>
                     <tbody id="team-table-body">
@@ -77,16 +84,16 @@
                 </table>
             </section>
 
-            <!-- Blog Yönetimi -->
+            <!-- Blog YÃ¶netimi -->
             <section id="posts-management" class="management-section">
-                <h2>Blog Yazıları Yönetimi</h2>
-                <button class="btn btn-primary">Yeni Yazı Ekle</button>
+                <h2>Blog YazÄ±larÄ± YÃ¶netimi</h2>
+                <button class="btn btn-primary">Yeni YazÄ± Ekle</button>
                 <table>
                     <thead>
                         <tr>
-                            <th>Başlık</th>
-                            <th>Yayınlanma Tarihi</th>
-                            <th>İşlemler</th>
+                            <th>BaÅŸlÄ±k</th>
+                            <th>YayÄ±nlanma Tarihi</th>
+                            <th>Ä°ÅŸlemler</th>
                         </tr>
                     </thead>
                     <tbody id="posts-table-body">
@@ -99,59 +106,59 @@
 
     <script src="admin.js"></script>
 
-    <!-- Hizmet Ekle/Düzenle Modal -->
+    <!-- Hizmet Ekle/DÃ¼zenle Modal -->
     <div id="service-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h2 id="modal-title">Hizmet Ekle/Düzenle</h2>
+            <h2 id="modal-title">Hizmet Ekle/DÃ¼zenle</h2>
             <form id="service-form">
                 <input type="hidden" id="service-id">
                 <div class="form-group">
-                    <label for="service-title">Başlık</label>
+                    <label for="service-title">BaÅŸlÄ±k</label>
                     <input type="text" id="service-title" required>
                 </div>
                 <div class="form-group">
-                    <label for="service-description">Kısa Açıklama (Kart gösterimi için)</label>
+                    <label for="service-description">KÄ±sa AÃ§Ä±klama (Kart gÃ¶sterimi iÃ§in)</label>
                     <textarea id="service-description" rows="2" required
-                        placeholder="Örn: Ceza davalarında soruşturma ve kovuşturma aşamalarında hukuki destek sağlıyoruz."></textarea>
+                        placeholder="Ã–rn: Ceza davalarÄ±nda soruÅŸturma ve kovuÅŸturma aÅŸamalarÄ±nda hukuki destek saÄŸlÄ±yoruz."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="service-hero-description">Detay Sayfası Ana Açıklaması</label>
+                    <label for="service-hero-description">Detay SayfasÄ± Ana AÃ§Ä±klamasÄ±</label>
                     <textarea id="service-hero-description" rows="3" required
-                        placeholder="Detay sayfasında gösterilecek uzun açıklama"></textarea>
+                        placeholder="Detay sayfasÄ±nda gÃ¶sterilecek uzun aÃ§Ä±klama"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="service-icon">İkon Seç</label>
+                    <label for="service-icon">Ä°kon SeÃ§</label>
                     <select id="service-icon" required>
-                        <option value="">-- İkon Seçin --</option>
+                        <option value="">-- Ä°kon SeÃ§in --</option>
                         <!-- JavaScript ile doldurulacak -->
                     </select>
                     <div id="icon-preview" style="margin-top: 10px; font-size: 24px; color: var(--primary-color);">
                     </div>
                 </div>
 
-                <!-- Hizmet Alanları -->
+                <!-- Hizmet AlanlarÄ± -->
                 <div class="form-group">
-                    <label>Hizmet Verdiğimiz Alanlar</label>
+                    <label>Hizmet VerdiÄŸimiz Alanlar</label>
                     <div id="service-areas-container">
                         <!-- JavaScript ile doldurulacak -->
                     </div>
                     <button type="button" id="add-service-area" class="btn btn-secondary">+ Yeni Alan Ekle</button>
                 </div>
 
-                <!-- İkinci Bölüm -->
+                <!-- Ä°kinci BÃ¶lÃ¼m -->
                 <div class="form-group">
-                    <label for="service-second-title">İkinci Bölüm Başlığı</label>
+                    <label for="service-second-title">Ä°kinci BÃ¶lÃ¼m BaÅŸlÄ±ÄŸÄ±</label>
                     <input type="text" id="service-second-title"
-                        placeholder="Örn: Sürecimiz, Yaklaşımımız, Sunduğumuz Hizmetler">
+                        placeholder="Ã–rn: SÃ¼recimiz, YaklaÅŸÄ±mÄ±mÄ±z, SunduÄŸumuz Hizmetler">
                 </div>
                 <div class="form-group">
-                    <label for="service-second-description">İkinci Bölüm Açıklaması</label>
+                    <label for="service-second-description">Ä°kinci BÃ¶lÃ¼m AÃ§Ä±klamasÄ±</label>
                     <textarea id="service-second-description" rows="2"
-                        placeholder="İkinci bölüm için açıklama metni"></textarea>
+                        placeholder="Ä°kinci bÃ¶lÃ¼m iÃ§in aÃ§Ä±klama metni"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>İkinci Bölüm Maddeleri</label>
+                    <label>Ä°kinci BÃ¶lÃ¼m Maddeleri</label>
                     <div id="service-second-items-container">
                         <!-- JavaScript ile doldurulacak -->
                     </div>
@@ -163,15 +170,15 @@
         </div>
     </div>
 
-    <!-- Ekip Ekle/Düzenle Modal -->
+    <!-- Ekip Ekle/DÃ¼zenle Modal -->
     <div id="team-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h2>Ekip Üyesi Ekle/Düzenle</h2>
+            <h2>Ekip Ãœyesi Ekle/DÃ¼zenle</h2>
             <form id="team-form">
                 <input type="hidden" id="team-id">
                 <div class="form-group">
-                    <label for="team-name">İsim</label>
+                    <label for="team-name">Ä°sim</label>
                     <input type="text" id="team-name" required>
                 </div>
                 <div class="form-group">
@@ -183,47 +190,47 @@
                     <textarea id="team-bio" rows="4" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="team-image-file">Resim Dosyası</label>
+                    <label for="team-image-file">Resim DosyasÄ±</label>
                     <input type="file" id="team-image-file" accept="image/*" required>
-                    <small>JPG, PNG dosyaları desteklenir</small>
+                    <small>JPG, PNG dosyalarÄ± desteklenir</small>
                 </div>
                 <div class="form-group" style="display: none;">
-                    <label for="team-image">Resim URL (manuel girişte kullanın)</label>
-                    <input type="text" id="team-image" placeholder="Örn: assets/photo.jpg">
+                    <label for="team-image">Resim URL (manuel giriÅŸte kullanÄ±n)</label>
+                    <input type="text" id="team-image" placeholder="Ã–rn: assets/photo.jpg">
                 </div>
                 <button type="submit" class="btn btn-primary">Kaydet</button>
             </form>
         </div>
     </div>
 
-    <!-- Blog Ekle/Düzenle Modal -->
+    <!-- Blog Ekle/DÃ¼zenle Modal -->
     <div id="post-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
-            <h2>Blog Yazısı Ekle/Düzenle</h2>
+            <h2>Blog YazÄ±sÄ± Ekle/DÃ¼zenle</h2>
             <form id="post-form">
                 <input type="hidden" id="post-id">
                 <div class="form-group">
-                    <label for="post-title">Başlık</label>
+                    <label for="post-title">BaÅŸlÄ±k</label>
                     <input type="text" id="post-title" required>
                 </div>
                 <div class="form-group">
-                    <label for="post-content">İçerik</label>
+                    <label for="post-content">Ä°Ã§erik</label>
                     <textarea id="post-content" rows="8" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="post-service">İlişkili Çalışma Alanı</label>
+                    <label for="post-service">Ä°liÅŸkili Ã‡alÄ±ÅŸma AlanÄ±</label>
                     <select id="post-service">
-                        <option value="">-- Hizmet Seçin --</option>
-                        <!-- Seçenekler JS ile doldurulacak -->
+                        <option value="">-- Hizmet SeÃ§in --</option>
+                        <!-- SeÃ§enekler JS ile doldurulacak -->
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="post-author">Yazar</label>
                     <select id="post-author" required>
-                        <option value="">-- Yazar Seçin --</option>
-                        <option value="Ertuğrul Polat">Ertuğrul Polat</option>
-                        <option value="Çağrı Polat">Salih Çağrı Polat</option>
+                        <option value="">-- Yazar SeÃ§in --</option>
+                        <option value="ErtuÄŸrul Polat">ErtuÄŸrul Polat</option>
+                        <option value="Ã‡aÄŸrÄ± Polat">Salih Ã‡aÄŸrÄ± Polat</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary">Kaydet</button>
